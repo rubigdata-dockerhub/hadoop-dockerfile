@@ -17,3 +17,13 @@ from the mirror we use (or update to an alternative one).
 ## Pushing to Docker hub
 
 [Docker hub](https://hub.docker.com) can be used to distribute the image. Login to Docker Hub using the native command `docker login`. Once logged in, you can push an existing image using `docker push [OPTIONS] NAME[:TAG]`. 
+
+## Spark-Notebook
+
+The project has been abandoned, the original website does not exist any more.
+We may need to switch to Zeppelin.
+
+Or revive the build process:
+https://github.com/spark-notebook/spark-notebook/blob/master/docs/build_from_source.md
+
+
