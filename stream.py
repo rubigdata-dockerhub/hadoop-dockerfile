@@ -25,20 +25,24 @@ def data_generator():
         stdev = math.sqrt(mean)
         price = numpy.random.normal(mean, stdev)
 
-        yield ' '.join([material, weapon, str(int(price))]) + '\n'
+        yield material + ' ' + weapon + ' was sold for ' + str(int(price)) + 'gp\n'
 
 
 def serve():
     dg = data_generator()
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind(('127.0.0.1', '9999'))
-        s.listen()
-        conn, addr = s.accept()
-        with conn:
-            while True:
-                time.sleep(random.uniform(0.0001, 0.02))
-                conn.sendall(next(dg))
-                conn.se
+        s.bind(('127.0.0.1', 9999))
+        while True:
+            try:
+                s.listen()
+                conn, addr = s.accept()
+                with conn:
+                    print('Connected by', addr)
+                    while True:
+                        time.sleep(random.uniform(0.0001, 0.02))
+                        conn.send(next(dg).encode('utf-8'))
+            except:
+                print('Disconnected by', addr)
 
 
 def main():
