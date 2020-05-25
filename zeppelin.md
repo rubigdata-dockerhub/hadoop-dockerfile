@@ -5,15 +5,27 @@
 Checkout Zeppelin branch:
 
     git clone -b zeppelin \
-	  git@github.com:rubigdata-dockerhub/hadoop-dockerfile.git \
-	  hadoop-dockerfile-zeppelin
+      git@github.com:rubigdata-dockerhub/hadoop-dockerfile.git \
+      hadoop-dockerfile-zeppelin
+    cd hadoop-dockerfile-zeppelin
 
-	cd hadoop-dockerfile-zeppelin
+Initialize Dockerfile setup from official repo:
+
+    curl -so log4j.properties https://raw.githubusercontent.com/apache/zeppelin/c46c3d7efc27477ccde53893b0ef0c394f6fe44d/scripts/docker/zeppelin/bin/log4j.properties
+    curl -so Dockerfile https://raw.githubusercontent.com/apache/zeppelin/c46c3d7efc27477ccde53893b0ef0c394f6fe44d/scripts/docker/zeppelin/bin/Dockerfile
+
+Adapt Dockerfile to use netinst version:
+
+    
+
+Add course specific instructions:
+
+        
 
 Create image:
 
     cd gh/hadoop-dockerfile-zeppelin/
-	docker build -t hadoop:devel .
+    docker build -t hadoop:devel .
 
 Create container:
 
