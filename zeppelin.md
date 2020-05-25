@@ -13,8 +13,7 @@ Checkout Zeppelin branch:
 Create image:
 
     cd gh/hadoop-dockerfile-zeppelin/
-	IH=$(docker build .)
-	docker tag $IH hadoop:devel
+	docker build -t hadoop:devel .
 
 Create container:
 
