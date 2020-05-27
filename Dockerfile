@@ -52,18 +52,25 @@ RUN echo "$LOG_TAG Install python related packages" && \
     pip install -q pycodestyle==2.5.0 && \
     apt install python3 -y && \
     apt install python3-pip -y && \
-    python3 -m pip install numpy
+    python3 -m pip install numpy && \
+    ln -sf /usr/bin/python3 /usr/bin/python
 
 # Install kubectl
 RUN apt-get install -y apt-transport-https && \
     curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
     echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | tee -a /etc/apt/sources.list.d/kubernetes.list && \
-    apt-get update && \
+    apt-get -y update && \
     apt-get install -y kubectl
 
 RUN echo "$LOG_TAG Cleanup" && \
     apt-get autoclean && \
     apt-get clean
+
+#
+# TODO: Can we remove more from the netinst?
+# TODO: Check:     Do we have the interpreters we need?
+#       Otherwise: https://zeppelin.apache.org/docs/0.9.0-preview1/usage/interpreter/installation.html
+#
 
 RUN echo "$LOG_TAG Download Zeppelin binary" && \
     wget --quiet -O /tmp/zeppelin-${Z_VERSION}-bin-netinst.tgz http://archive.apache.org/dist/zeppelin/zeppelin-${Z_VERSION}/zeppelin-${Z_VERSION}-bin-netinst.tgz && \
@@ -82,10 +89,42 @@ RUN echo "$LOG_TAG Download Zeppelin binary" && \
 
 COPY log4j.properties ${Z_HOME}/conf/
 
-USER 1000
+USER 0
 
 EXPOSE 8080
 
+#
+# Course specific stuff follows - needs thorough check
+#
+
+RUN \
+  apt-get update -y && \
+  apt-get dist-upgrade -y && \
+  apt-get install -y wget less nano rsync ssh vim-athena netcat && \
+  cd / && \
+  wget http://ftp.nluug.nl/internet/apache/hadoop/common/hadoop-2.9.2/hadoop-2.9.2.tar.gz && \
+  tar xzfp hadoop-2.9.2.tar.gz && \
+  rm -rf hadoop-2.9.2.tar.gz && \
+  echo export JAVA_HOME=${JAVA_HOME} >> /hadoop-2.9.2/etc/hadoop/hadoop-env.sh
+
+ADD core-site.xml hdfs-site.xml /hadoop-2.9.2/etc/hadoop/
+
+RUN \ 
+  echo export JAVA_HOME=${JAVA_HOME} >> ${HOME}/.bashrc && \
+  export TERM=xterm && \
+  ssh-keygen -t rsa -P '' -f ${HOME}/.ssh/id_rsa && \
+  cat ${HOME}/.ssh/id_rsa.pub >> ${HOME}/.ssh/authorized_keys && \
+  chmod 0600 ${HOME}/.ssh/authorized_keys && \
+  echo "service ssh start > /dev/null" >> ${HOME}/.bashrc && \
+  echo export PATH=$PATH:/hadoop-2.9.2/bin:/hadoop-2.9.2/sbin >> ${HOME}/.bashrc
+
+RUN \
+  cd /zeppelin/lib && \
+  wget https://jitpack.io/com/github/sara-nl/warcutils/8736afad41/warcutils-8736afad41.jar
+
+COPY interpreter.json /zeppelin/conf/interpreter.json
+
 ENTRYPOINT [ "/usr/bin/tini", "--" ]
-WORKDIR ${Z_HOME}
-CMD ["bin/zeppelin.sh"]
+
+WORKDIR /
+CMD ["/zeppelin/bin/zeppelin.sh"]
