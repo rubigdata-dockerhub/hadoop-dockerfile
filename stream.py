@@ -1,4 +1,5 @@
 import math
+import multiprocessing as mp
 import numpy
 import random
 import socket
@@ -28,26 +29,40 @@ def data_generator():
         yield material + ' ' + weapon + ' was sold for ' + str(int(price)) + 'gp\n'
 
 
-def serve():
+def serve(socket):
     dg = data_generator()
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind(('0.0.0.0', 9999))
-        while True:
-            try:
-                s.listen()
-                conn, addr = s.accept()
-                with conn:
-                    print('Connected by', addr)
-                    while True:
-                        time.sleep(random.uniform(0.0001, 0.02))
-                        conn.send(next(dg).encode('utf-8'))
-            except:
-                print('Disconnected by', addr)
+    while True:
+        try:
+            conn, addr = socket.accept()
+            print('Connected by', addr)
+            while True:
+                time.sleep(random.uniform(0.0001, 0.02))
+                conn.send(next(dg).encode('utf-8'))
+        except:
+            print('Disconnected by', addr)
 
 
 def main():
-    serve()
+    num_workers = 5
+
+    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server.bind(('0.0.0.0', 9999))
+    server.listen(5)
+
+    workers = [mp.Process(target=serve, args=(server,)) for i in range(num_workers)]
+    for p in workers:
+        p.daemon = True
+        p.start()
+
+    while True:
+        try:
+            time.sleep(10)
+        except:
+            break
+
+    server.close()
 
 
 if __name__ == '__main__':
     main()
+
