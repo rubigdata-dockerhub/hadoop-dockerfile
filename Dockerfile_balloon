@@ -55,31 +55,23 @@ RUN echo "$LOG_TAG Install python related packages" && \
     python3 -m pip install numpy && \
     ln -sf /usr/bin/python3 /usr/bin/python
 
+# Install kubectl
+RUN apt-get install -y apt-transport-https && \
+    curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
+    echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | tee -a /etc/apt/sources.list.d/kubernetes.list && \
+    apt-get -y update && \
+    apt-get install -y kubectl
+
 RUN echo "$LOG_TAG Cleanup" && \
     apt-get autoclean && \
     apt-get clean
-
-# Build correct Scala version
-# prepare, maybe add a flag to compile for hadoop 3 here?
-WORKDIR /
-RUN echo "$LOG_TAG setting up spark" && \
-  wget https://github.com/apache/spark/archive/v2.4.4.tar.gz && \
-  tar -xvf v2.4.4.tar.gz && \
-  rm v2.4.4.tar.gz && \
-  ./spark-2.4.4/dev/change-scala-version.sh 2.12
-
-# build
-WORKDIR /spark-2.4.4
-RUN echo "$LOG_TAG building spark" && \
-  ./build/mvn -DskipTests -Pscala-2.12 clean package
-
 
 #
 # TODO: Can we remove more from the netinst?
 # TODO: Check:     Do we have the interpreters we need?
 #       Otherwise: https://zeppelin.apache.org/docs/0.9.0-preview1/usage/interpreter/installation.html
 #
-WORKDIR /
+
 RUN echo "$LOG_TAG Download Zeppelin binary" && \
     wget --quiet -O /tmp/zeppelin-${Z_VERSION}-bin-netinst.tgz http://archive.apache.org/dist/zeppelin/zeppelin-${Z_VERSION}/zeppelin-${Z_VERSION}-bin-netinst.tgz && \
     tar -zxvf /tmp/zeppelin-${Z_VERSION}-bin-netinst.tgz && \
@@ -95,13 +87,11 @@ RUN echo "$LOG_TAG Download Zeppelin binary" && \
     # Allow process to create new folders (e.g. webapps)
     chmod 775 ${Z_HOME}
 
-COPY zeppelin-env.sh ${Z_HOME}/conf/
 COPY log4j.properties ${Z_HOME}/conf/
 
 USER 0
 
 EXPOSE 8080
-
 
 #
 # Course specific stuff follows - needs thorough check
@@ -112,12 +102,12 @@ RUN \
   apt-get dist-upgrade -y && \
   apt-get install -y wget less nano rsync ssh vim-athena netcat && \
   cd / && \
-  wget http://ftp.nluug.nl/internet/apache/hadoop/common/hadoop-3.2.1/hadoop-3.2.1.tar.gz && \
-  tar xzfp hadoop-3.2.1.tar.gz && \
-  rm -rf hadoop-3.2.1.tar.gz && \
-  echo export JAVA_HOME=${JAVA_HOME} >> /hadoop-3.2.1/etc/hadoop/hadoop-env.sh
+  wget http://ftp.nluug.nl/internet/apache/hadoop/common/hadoop-2.9.2/hadoop-2.9.2.tar.gz && \
+  tar xzfp hadoop-2.9.2.tar.gz && \
+  rm -rf hadoop-2.9.2.tar.gz && \
+  echo export JAVA_HOME=${JAVA_HOME} >> /hadoop-2.9.2/etc/hadoop/hadoop-env.sh
 
-ADD core-site.xml hdfs-site.xml /hadoop-3.2.1/etc/hadoop/
+ADD core-site.xml hdfs-site.xml /hadoop-2.9.2/etc/hadoop/
 
 RUN \
   echo export JAVA_HOME=${JAVA_HOME} >> ${HOME}/.bashrc && \
@@ -126,7 +116,7 @@ RUN \
   cat ${HOME}/.ssh/id_rsa.pub >> ${HOME}/.ssh/authorized_keys && \
   chmod 0600 ${HOME}/.ssh/authorized_keys && \
   echo "service ssh start > /dev/null" >> ${HOME}/.bashrc && \
-  echo export PATH=$PATH:/hadoop-3.2.1/bin:/hadoop-3.2.1/sbin >> ${HOME}/.bashrc
+  echo export PATH=$PATH:/hadoop-2.9.2/bin:/hadoop-2.9.2/sbin >> ${HOME}/.bashrc
 
 RUN \
   cd /zeppelin/lib && \
