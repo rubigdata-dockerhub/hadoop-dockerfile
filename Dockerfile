@@ -1,16 +1,113 @@
-# Use an official Python runtime as a parent image
-FROM andypetrella/spark-notebook:0.9.0-SNAPSHOT-scala-2.11.8-spark-2.3.2-hadoop-2.9.2-with-hive
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-# Make ports 9000 and 4040-4045 available to the world outside this container
-EXPOSE 9000 4040-4045
+FROM ubuntu:16.04
+MAINTAINER Arjen P. de Vries <arjen@acm.org>
+
+ENV Z_VERSION="0.9.0-preview1"
+
+ENV LOG_TAG="[ZEPPELIN_${Z_VERSION}]:" \
+    Z_HOME="/zeppelin" \
+    LANG=en_US.UTF-8 \
+    LC_ALL=en_US.UTF-8 \
+    ZEPPELIN_ADDR="0.0.0.0"
+
+RUN echo "$LOG_TAG update and install basic packages" && \
+    apt-get -y update && \
+    apt-get install -y locales && \
+    locale-gen $LANG && \
+    apt-get install -y software-properties-common && \
+    apt -y autoclean && \
+    apt -y dist-upgrade && \
+    apt-get install -y build-essential
+
+RUN echo "$LOG_TAG install tini related packages" && \
+    apt-get install -y wget curl grep sed dpkg && \
+    TINI_VERSION=`curl https://github.com/krallin/tini/releases/latest | grep -o "/v.*\"" | sed 's:^..\(.*\).$:\1:'` && \
+    curl -L "https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini_${TINI_VERSION}.deb" > tini.deb && \
+    dpkg -i tini.deb && \
+    rm tini.deb
+
+ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+RUN echo "$LOG_TAG Install java8" && \
+    apt-get -y update && \
+    apt-get install -y openjdk-8-jdk && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN echo "$LOG_TAG Install python related packages" && \
+    apt-get -y update && \
+    apt-get install -y python-dev python-pip && \
+    pip install -q pycodestyle==2.5.0 && \
+    apt install python3 -y && \
+    apt install python3-pip -y && \
+    python3 -m pip install numpy && \
+    ln -sf /usr/bin/python3 /usr/bin/python
+
+# Install kubectl
+RUN apt-get install -y apt-transport-https && \
+    curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
+    echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | tee -a /etc/apt/sources.list.d/kubernetes.list && \
+    apt-get -y update && \
+    apt-get install -y kubectl
+
+RUN echo "$LOG_TAG Cleanup" && \
+    apt-get autoclean && \
+    apt-get clean
+
+#
+# TODO: Can we remove more from the netinst?
+# TODO: Check:     Do we have the interpreters we need?
+#       Otherwise: https://zeppelin.apache.org/docs/0.9.0-preview1/usage/interpreter/installation.html
+#
+
+RUN echo "$LOG_TAG Download Zeppelin binary" && \
+    wget --quiet -O /tmp/zeppelin-${Z_VERSION}-bin-netinst.tgz http://archive.apache.org/dist/zeppelin/zeppelin-${Z_VERSION}/zeppelin-${Z_VERSION}-bin-netinst.tgz && \
+    tar -zxvf /tmp/zeppelin-${Z_VERSION}-bin-netinst.tgz && \
+    rm -rf /tmp/zeppelin-${Z_VERSION}-bin-netinst.tgz && \
+    mkdir -p ${Z_HOME} && \
+    mv /zeppelin-${Z_VERSION}-bin-netinst/* ${Z_HOME}/ && \
+    chown -R root:root ${Z_HOME} && \
+    mkdir -p ${Z_HOME}/logs ${Z_HOME}/run ${Z_HOME}/webapps && \
+    # Allow process to edit /etc/passwd, to create a user entry for zeppelin
+    chgrp root /etc/passwd && chmod ug+rw /etc/passwd && \
+    # Give access to some specific folders
+    chmod -R 775 "${Z_HOME}/logs" "${Z_HOME}/run" "${Z_HOME}/notebook" "${Z_HOME}/conf" && \
+    # Allow process to create new folders (e.g. webapps)
+    chmod 775 ${Z_HOME}
+
+COPY log4j.properties ${Z_HOME}/conf/
+
+USER 0
+
+EXPOSE 8080
+
+#
+# Course specific stuff follows - needs thorough check
+#
 
 RUN \
-  apt-get update && \
-  apt-get install -y wget less nano rsync ssh && \
-  wget -q http://ftp.nluug.nl/internet/apache/hadoop/common/hadoop-2.9.2/hadoop-2.9.2.tar.gz && \
-  tar xzfp hadoop-2.9.2.tar.gz
+  apt-get update -y && \
+  apt-get dist-upgrade -y && \
+  apt-get install -y wget less nano rsync ssh vim-athena netcat && \
+  cd / && \
+  wget http://ftp.nluug.nl/internet/apache/hadoop/common/hadoop-2.9.2/hadoop-2.9.2.tar.gz && \
+  tar xzfp hadoop-2.9.2.tar.gz && \
+  rm -rf hadoop-2.9.2.tar.gz && \
+  echo export JAVA_HOME=${JAVA_HOME} >> /hadoop-2.9.2/etc/hadoop/hadoop-env.sh
 
-ADD core-site.xml hdfs-site.xml hadoop-2.9.2/etc/hadoop/
+ADD core-site.xml hdfs-site.xml /hadoop-2.9.2/etc/hadoop/
 
 RUN \ 
   echo export JAVA_HOME=${JAVA_HOME} >> ${HOME}/.bashrc && \
@@ -18,6 +115,16 @@ RUN \
   ssh-keygen -t rsa -P '' -f ${HOME}/.ssh/id_rsa && \
   cat ${HOME}/.ssh/id_rsa.pub >> ${HOME}/.ssh/authorized_keys && \
   chmod 0600 ${HOME}/.ssh/authorized_keys && \
-  echo export PATH=$PATH:/opt/docker/hadoop-2.9.2/bin:/opt/docker/hadoop-2.9.2/sbin >> ${HOME}/.bashrc  
+  echo "service ssh start > /dev/null" >> ${HOME}/.bashrc && \
+  echo export PATH=$PATH:/hadoop-2.9.2/bin:/hadoop-2.9.2/sbin >> ${HOME}/.bashrc
 
-ENTRYPOINT service ssh start && bin/spark-notebook -Dpidfile.path=/dev/null
+RUN \
+  cd /zeppelin/lib && \
+  wget https://jitpack.io/com/github/sara-nl/warcutils/8736afad41/warcutils-8736afad41.jar
+
+COPY interpreter.json /zeppelin/conf/interpreter.json
+
+ENTRYPOINT [ "/usr/bin/tini", "--" ]
+
+WORKDIR /
+CMD ["/zeppelin/bin/zeppelin.sh"]

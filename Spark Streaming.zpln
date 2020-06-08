@@ -1,0 +1,1991 @@
+﻿{
+  "paragraphs": [
+    {
+      "text": "%md\n# Spark Structured Streaming\n\nSpark Structured Streaming offers query processing over dataframes in a streaming fashion. \n\nBefore you start, read the excellent [introduction to Spark Structured Streaming](https://spark.apache.org/docs/latest/structured-streaming-programming-guide.html).\nThe lab session assumes that you viewed the Structured Streaming lecture and studied the background literature.\n\nThe exercise uses the abstractions offered by Spark to analyze the data from an online marketplace inspired by a popular online gam[e](https://www.youtube.com/watch?v=BJhF0L7pfo8).\nIn that game:\n\n+ players sell various items; whenever an item is sold the transaction is reported;\n+ every item has a material (e.g., Iron, Steel), a type (Sword, Shield), and a price;\n+ in order to get live updates on the economy, a Spark Streaming application would be perfect.\n\nJust like the previous lab sessions, work through the notebook by answering the questions posed, and implementing various features for your ideal game dashboard. \nUse the questions and the code you wrote as the basis for your blog post.\n\n**Note up-front:**\n_Stream processing is non-trivial, especially when while working on your assignment, you may be restarting streams etc. when things went wrong.\nA common consequence is the Docker container running out of memory, or the Zeppelin notebook seemingly \"getting stuck\".\nTry to stop the container, and then start it again; you may also have to remove state in the form of data directories or checkpoint directories.\nThis procedure tends to resolve inexplicable problems I encountered while developing this new lab session (say in 99% of the cases)._",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-25T02:16:25+0000",
+      "config": {
+        "editorSetting": {
+          "language": "text",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/text",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": false,
+        "tableHide": false
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<h1>Spark Structured Streaming</h1>\n<p>Spark Structured Streaming offers query processing over dataframes in a streaming fashion.</p>\n<p>Before you start, read the excellent <a href=\"https://spark.apache.org/docs/latest/structured-streaming-programming-guide.html\">introduction to Spark Structured Streaming</a>.<br />\nThe lab session assumes that you viewed the Structured Streaming lecture and studied the background literature.</p>\n<p>The exercise uses the abstractions offered by Spark to analyze the data from an online marketplace inspired by a popular online gam<a href=\"https://www.youtube.com/watch?v=BJhF0L7pfo8\">e</a>.<br />\nIn that game:</p>\n<ul>\n<li>players sell various items; whenever an item is sold the transaction is reported;</li>\n<li>every item has a material (e.g., Iron, Steel), a type (Sword, Shield), and a price;</li>\n<li>in order to get live updates on the economy, a Spark Streaming application would be perfect.</li>\n</ul>\n<p>Just like the previous lab sessions, work through the notebook by answering the questions posed, and implementing various features for your ideal game dashboard.<br />\nUse the questions and the code you wrote as the basis for your blog post.</p>\n<p><strong>Note up-front:</strong><br />\n<em>Stream processing is non-trivial, especially when while working on your assignment, you may be restarting streams etc. when things went wrong.<br />\nA common consequence is the Docker container running out of memory, or the Zeppelin notebook seemingly &ldquo;getting stuck&rdquo;.<br />\nTry to stop the container, and then start it again; you may also have to remove state in the form of data directories or checkpoint directories.<br />\nThis procedure tends to resolve inexplicable problems I encountered while developing this new lab session (say in 99% of the cases).</em></p>\n\n</div>"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1589832977875_-1097682577",
+      "id": "paragraph_1589448209034_2145197905",
+      "dateCreated": "2020-05-18T20:16:17+0000",
+      "dateStarted": "2020-05-25T02:16:19+0000",
+      "dateFinished": "2020-05-25T02:16:21+0000",
+      "status": "FINISHED",
+      "focus": true,
+      "$$hashKey": "object:105"
+    },
+    {
+      "text": "%md\n## Using Zeppelin\n\nWe have switched from Spark Notebook to Apache Zeppelin, as the former does not receive support any longer. \n\nEvery notebook has a default interpreter, Spark in our case; so, new empty cells correspond to Spark programs. \nZeppelin supports multiple interpreters, e.g., this instruction is written in Markdown using a cell that starts \nwith `%md` to select the Markdown interpreter instead of the default Spark interpreter. We have hidden the input \nto make the notebook look nicer; you can modify these settings using the menu on the top right of each cell.\n\nWhat you should also know: the `%sh` shell interpreter let's you execute shell commands from within the notebook.\nE.g. if you wish to wipe data written into a directory `/bigdata` (to prepare for a new sample from the stream\nlater on in the lab session), you would simply create a cell with this input:\n\n```\n%sh\nrm -rf /bigdata/*\n```\n\n_If you need more help:_\nthe [Hortonworks documentation](https://docs.cloudera.com/HDPDocuments/HDP3/HDP-3.1.5/using-zeppelin/content/working_with_notes.html) gives a nice and brief introduction into all features of the Zeppelin UI/UX.",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-25T00:37:54+0000",
+      "config": {
+        "editorSetting": {
+          "language": "text",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/text",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": false,
+        "tableHide": false
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<h2>Using Zeppelin</h2>\n<p>We have switched from Spark Notebook to Apache Zeppelin, as the former does not receive support any longer.</p>\n<p>Every notebook has a default interpreter, Spark in our case; so, new empty cells correspond to Spark programs.<br />\nZeppelin supports multiple interpreters, e.g., this instruction is written in Markdown using a cell that starts<br />\nwith <code>%md</code> to select the Markdown interpreter instead of the default Spark interpreter. We have hidden the input<br />\nto make the notebook look nicer; you can modify these settings using the menu on the top right of each cell.</p>\n<p>What you should also know: the <code>%sh</code> shell interpreter let&rsquo;s you execute shell commands from within the notebook.<br />\nE.g. if you wish to wipe data written into a directory <code>/bigdata</code> (to prepare for a new sample from the stream<br />\nlater on in the lab session), you would simply create a cell with this input:</p>\n<pre><code>%sh\nrm -rf /bigdata/*\n</code></pre>\n<p><em>If you need more help:</em><br />\nthe <a href=\"https://docs.cloudera.com/HDPDocuments/HDP3/HDP-3.1.5/using-zeppelin/content/working_with_notes.html\">Hortonworks documentation</a> gives a nice and brief introduction into all features of the Zeppelin UI/UX.</p>\n\n</div>"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1589832977876_1170042122",
+      "id": "paragraph_1589452403808_1091206130",
+      "dateCreated": "2020-05-18T20:16:17+0000",
+      "dateStarted": "2020-05-24T21:45:41+0000",
+      "dateFinished": "2020-05-24T21:45:42+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:106"
+    },
+    {
+      "text": "%md\n## Input Stream\n\nWe created a sample python program that writes the [RuneScape](https://runescape.com) \"like\" output to port 9999. \n\nFor the sake of the assignment, you will start the stream inside the course container (of course, you'd be reading from an internet connection \nin a real life application of Spark Structured Streaming, probably using a Kafka input source, but we keep things simple for now).\n\nStart the sample stream as follows (_try to understand what happens_):\n\n    docker cp stream.py snbz:/\n    docker exec snbz sh -c \"python stream.py &\"\n\nFinally, we are ready to use Spark Structured Streaming to process the stream into a dashboard.",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-24T21:46:11+0000",
+      "config": {
+        "editorSetting": {
+          "language": "text",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/text",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": false,
+        "tableHide": false
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<h2>Input Stream</h2>\n<p>We created a sample python program that writes the <a href=\"https://runescape.com\">RuneScape</a> &ldquo;like&rdquo; output to port 9999.</p>\n<p>For the sake of the assignment, you will start the stream inside the course container (of course, you&rsquo;d be reading from an internet connection<br />\nin a real life application of Spark Structured Streaming, probably using a Kafka input source, but we keep things simple for now).</p>\n<p>Start the sample stream as follows (<em>try to understand what happens</em>):</p>\n<pre><code>docker cp stream.py snbz:/\ndocker exec snbz sh -c &quot;python stream.py &amp;&quot;\n</code></pre>\n<p>Finally, we are ready to use Spark Structured Streaming to process the stream into a dashboard.</p>\n\n</div>"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1590346737403_-1899530057",
+      "id": "paragraph_1590346737403_-1899530057",
+      "dateCreated": "2020-05-24T18:58:57+0000",
+      "dateStarted": "2020-05-24T21:46:07+0000",
+      "dateFinished": "2020-05-24T21:46:07+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:107"
+    },
+    {
+      "text": "%md\n## Preliminaries\nStart with a few imports:",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-25T02:18:49+0000",
+      "config": {
+        "editorSetting": {
+          "language": "text",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/text",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": false
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<h2>Preliminaries</h2>\n<p>Start with a few imports:</p>\n\n</div>"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1590373097354_-1345560625",
+      "id": "paragraph_1590373097354_-1345560625",
+      "dateCreated": "2020-05-25T02:18:17+0000",
+      "dateStarted": "2020-05-25T02:18:46+0000",
+      "dateFinished": "2020-05-25T02:18:46+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:108"
+    },
+    {
+      "text": "// A few imports we need later on:\nimport spark.implicits._\nimport org.apache.spark.sql.streaming.Trigger",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-25T02:19:40+0000",
+      "config": {
+        "colWidth": 12,
+        "fontSize": 9,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/scala"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1590373001011_1107059707",
+      "id": "paragraph_1590373001011_1107059707",
+      "dateCreated": "2020-05-25T02:16:41+0000",
+      "dateStarted": "2020-05-25T02:19:40+0000",
+      "dateFinished": "2020-05-25T02:19:42+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:109"
+    },
+    {
+      "text": "%md\nCreate a dataframe tied to the TCP/IP stream on localhost port 9999 using the `readStream` operation:",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-25T02:19:10+0000",
+      "config": {
+        "editorSetting": {
+          "language": "text",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/text",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": false
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<p>Create a dataframe tied to the TCP/IP stream on localhost port 9999 using the <code>readStream</code> operation:</p>\n\n</div>"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1589832977875_462368498",
+      "id": "paragraph_1589448302509_1503843353",
+      "dateCreated": "2020-05-18T20:16:17+0000",
+      "dateStarted": "2020-05-25T02:19:06+0000",
+      "dateFinished": "2020-05-25T02:19:06+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:110"
+    },
+    {
+      "text": "val socketDF = spark.readStream\n  .format(\"socket\")\n  .option(\"host\", \"0.0.0.0\")\n  .option(\"port\", 9999)\n  .load()",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-25T02:19:47+0000",
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1589832977875_-1363225484",
+      "id": "paragraph_1589445007354_1672367834",
+      "dateCreated": "2020-05-18T20:16:17+0000",
+      "dateStarted": "2020-05-25T02:19:47+0000",
+      "dateFinished": "2020-05-25T02:19:52+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:111"
+    },
+    {
+      "text": "%md\nWhile the result looks like an ordinary DataFrame at first sight, it identifies itself as a _Streaming Dataframe_ when you check:",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-24T18:47:18+0000",
+      "config": {
+        "colWidth": 12,
+        "fontSize": 9,
+        "enabled": false,
+        "results": {},
+        "editorSetting": {
+          "language": "text",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/text",
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<p>While the result looks like an ordinary DataFrame at first sight, it identifies itself as a <em>Streaming Dataframe</em> when you check:</p>\n\n</div>"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1589968457518_487118191",
+      "id": "paragraph_1589968457518_487118191",
+      "dateCreated": "2020-05-20T09:54:17+0000",
+      "dateStarted": "2020-05-24T18:47:15+0000",
+      "dateFinished": "2020-05-24T18:47:15+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:112"
+    },
+    {
+      "text": "socketDF.isStreaming",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-25T00:38:39+0000",
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1589832977875_-1170628364",
+      "id": "paragraph_1589449282216_1888903424",
+      "dateCreated": "2020-05-18T20:16:17+0000",
+      "dateStarted": "2020-05-25T00:38:39+0000",
+      "dateFinished": "2020-05-25T00:38:40+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:113"
+    },
+    {
+      "text": "%md\n## In-memory stream processing\nKeep in mind that Spark has a lazy execution paradigm; nothing has actually happened this far.\n\nLet's move on and write a sample of data from the TCP/IP connection into an in-memory dataframe for further analysis.",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-24T19:10:15+0000",
+      "config": {
+        "colWidth": 12,
+        "fontSize": 9,
+        "enabled": false,
+        "results": {},
+        "editorSetting": {
+          "language": "text",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/text",
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<h2>In-memory stream processing</h2>\n<p>Keep in mind that Spark has a lazy execution paradigm; nothing has actually happened this far.</p>\n<p>Let&rsquo;s move on and write a sample of data from the TCP/IP connection into an in-memory dataframe for further analysis.</p>\n\n</div>"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1590346108921_-205119332",
+      "id": "paragraph_1590346108921_-205119332",
+      "dateCreated": "2020-05-24T18:48:28+0000",
+      "dateStarted": "2020-05-24T19:10:12+0000",
+      "dateFinished": "2020-05-24T19:10:12+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:114"
+    },
+    {
+      "text": "// Setup streamreader\nval streamWriterMem = socketDF\n  .writeStream\n  .outputMode(\"append\")\n  .format(\"memory\")",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-25T02:14:26+0000",
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true,
+        "editorHide": false
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1589832977876_541014476",
+      "id": "paragraph_1589445076331_1204507247",
+      "dateCreated": "2020-05-18T20:16:17+0000",
+      "dateStarted": "2020-05-25T02:14:26+0000",
+      "dateFinished": "2020-05-25T02:14:53+0000",
+      "status": "ERROR",
+      "$$hashKey": "object:115"
+    },
+    {
+      "text": "// Start streaming!\nval memoryQuery = streamWriterMem  \n  .queryName(\"memoryDF\")\n  .start()\n\n// Run for 1 second...\nmemoryQuery\n  .awaitTermination(1000)\n  \n// ... and stop the query, to avoid filling up memory:\nmemoryQuery\n  .stop()",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-24T23:53:25+0000",
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true,
+        "editorHide": false
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1590347143256_1052199518",
+      "id": "paragraph_1590347143256_1052199518",
+      "dateCreated": "2020-05-24T19:05:43+0000",
+      "dateStarted": "2020-05-24T23:53:25+0000",
+      "dateFinished": "2020-05-24T23:53:27+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:116"
+    },
+    {
+      "text": "%md\nThe `memoryQuery` is a `StreamingQuery`, which reads data from a TCP socket, and splits it into individual lines based on newlines.\n\nSince we are streaming into memory, we need to be careful not to overflow it. Streaming for only 1 second to get a feel for the data is a safe bet.\n\nThe query is tied to a Dataframe named `memoryDF` that we can analyze using SQL:",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-24T19:31:07+0000",
+      "config": {
+        "editorSetting": {
+          "language": "text",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/text",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": false
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<p>The <code>memoryQuery</code> is a <code>StreamingQuery</code>, which reads data from a TCP socket, and splits it into individual lines based on newlines.</p>\n<p>Since we are streaming into memory, we need to be careful not to overflow it. Streaming for only 1 second to get a feel for the data is a safe bet.</p>\n<p>The query is tied to a Dataframe named <code>memoryDF</code> that we can analyze using SQL:</p>\n\n</div>"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1589832977876_-119786057",
+      "id": "paragraph_1589452113213_-1020765739",
+      "dateCreated": "2020-05-18T20:16:17+0000",
+      "dateStarted": "2020-05-24T19:30:59+0000",
+      "dateFinished": "2020-05-24T19:31:01+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:117"
+    },
+    {
+      "text": "// Query the top 10 rows from the dataframe, not truncating results\nspark.sql(\"select * from memoryDF\").show(10, false)",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-24T23:53:32+0000",
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true,
+        "editorHide": false
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1590347520347_1700196331",
+      "id": "paragraph_1590347520347_1700196331",
+      "dateCreated": "2020-05-24T19:12:00+0000",
+      "dateStarted": "2020-05-24T23:53:32+0000",
+      "dateFinished": "2020-05-24T23:53:32+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:118"
+    },
+    {
+      "text": "%md\nLet's see how many rows we found.",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-25T03:07:18+0000",
+      "config": {
+        "editorSetting": {
+          "language": "text",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/text",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": false
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<p>Let&rsquo;s see how many rows we found.</p>\n\n</div>"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1589832977876_-1862478898",
+      "id": "paragraph_1589451920089_-2103181667",
+      "dateCreated": "2020-05-18T20:16:17+0000",
+      "dateStarted": "2020-05-24T19:31:59+0000",
+      "dateFinished": "2020-05-24T19:31:59+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:119"
+    },
+    {
+      "text": "spark.sql(\"select count(*) from memoryDF\").show()",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-24T23:23:52+0000",
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1589832977876_1422019200",
+      "id": "paragraph_1589451990777_1216309247",
+      "dateCreated": "2020-05-18T20:16:17+0000",
+      "dateStarted": "2020-05-24T23:23:52+0000",
+      "dateFinished": "2020-05-24T23:23:52+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:120"
+    },
+    {
+      "text": "%md\nYou can repeat this multiple times, every time with (slightly) different results in sample count, and different output for the `.show()` command. \n\nFeel free to vary the time you read from the stream, or execute different SQL commands. Remember that all processing is in-memory, so take care not to collect too much data though. On a real cluster, that would be less problematic, but your resources are limited to those of your own machine (or the ones in Huygens).",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-24T21:53:31+0000",
+      "config": {
+        "colWidth": 12,
+        "fontSize": 9,
+        "enabled": false,
+        "results": {},
+        "editorSetting": {
+          "language": "text",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/text",
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<p>You can repeat this multiple times, every time with (slightly) different results in sample count, and different output for the <code>.show()</code> command.</p>\n<p>Feel free to vary the time you read from the stream, or execute different SQL commands. Remember that all processing is in-memory, so take care not to collect too much data though. On a real cluster, that would be less problematic, but your resources are limited to those of your own machine (or the ones in Huygens).</p>\n\n</div>"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1590349469263_-981939215",
+      "id": "paragraph_1590349469263_-981939215",
+      "dateCreated": "2020-05-24T19:44:29+0000",
+      "dateStarted": "2020-05-24T19:48:36+0000",
+      "dateFinished": "2020-05-24T19:48:36+0000",
+      "status": "READY",
+      "$$hashKey": "object:121"
+    },
+    {
+      "text": "%md\n## Parsing the input stream\n\nSo far, we have simply copied data from the input stream into a Dataframe in memory. Now that we know the structure of the stream messages, we should transform the data from `String` into a structure that can be processed in a more meaningful way. Use a regular expression on the data read from the stream before you write it out to memory. \n\nThe hints in the comments are meant to help you get started with the regular expression you need (add another extraction) and construction of a SQL query with multiple uses of the same regex, using Scala's [string interpolation](https://docs.scala-lang.org/overviews/core/string-interpolation.html).",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-24T23:24:10+0000",
+      "config": {
+        "colWidth": 12,
+        "fontSize": 9,
+        "enabled": false,
+        "results": {},
+        "editorSetting": {
+          "language": "text",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/text",
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<h2>Parsing the input stream</h2>\n<p>So far, we have simply copied data from the input stream into a Dataframe in memory. Now that we know the structure of the stream messages, we should transform the data from <code>String</code> into a structure that can be processed in a more meaningful way. Use a regular expression on the data read from the stream before you write it out to memory.</p>\n<p>The hints in the comments are meant to help you get started with the regular expression you need (add another extraction) and construction of a SQL query with multiple uses of the same regex, using Scala&rsquo;s <a href=\"https://docs.scala-lang.org/overviews/core/string-interpolation.html\">string interpolation</a>.</p>\n\n</div>"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1590352535980_-430940734",
+      "id": "paragraph_1590352535980_-430940734",
+      "dateCreated": "2020-05-24T20:35:35+0000",
+      "dateStarted": "2020-05-24T23:24:02+0000",
+      "dateFinished": "2020-05-24T23:24:03+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:122"
+    },
+    {
+      "text": "// Fill in the gaps!\n\n// Hint: modify the type definitions to produce RuneData as triples <material, tpe, price>\n\ncase class RuneData(material: String, price: Integer)\n\n// Hint: modify the regular expression to parse the strings taken from the stream into triples\n\nval myregex = \"\\\"^([A-Z].+) [A-Z].+ was sold for (\\\\\\\\d+)\\\"\"\nval q = f\"select regexp_extract(value, $myregex%s, 1) as material, cast(regexp_extract(value, $myregex%s, 2) as Integer) as price from memoryDF\"\nspark.sql(q).as[RuneData].show(10, false)",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-25T02:17:40+0000",
+      "config": {
+        "colWidth": 12,
+        "fontSize": 9,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/scala"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1590352674285_961143901",
+      "id": "paragraph_1590352674285_961143901",
+      "dateCreated": "2020-05-24T20:37:54+0000",
+      "dateStarted": "2020-05-24T23:34:54+0000",
+      "dateFinished": "2020-05-24T23:35:17+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:123"
+    },
+    {
+      "text": "%md\n## Stream Processing\n\nSo far, we took samples from a stream and prepared our code for parsing that stream. Let us now switch to continuous stream processing;\nfirst using console output for debugging, and subsequently writing the stream query output to disk.\n\n### Console output\n\nFinally, we will see stream-based processing in action. Let us set an update interval of 5 seconds.",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-25T01:44:35+0000",
+      "config": {
+        "colWidth": 12,
+        "fontSize": 9,
+        "enabled": false,
+        "results": {},
+        "editorSetting": {
+          "language": "text",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/text",
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<h2>Stream Processing</h2>\n<p>So far, we took samples from a stream and prepared our code for parsing that stream. Let us now switch to continuous stream processing;<br />\nfirst using console output for debugging, and subsequently writing the stream query output to disk.</p>\n<h3>Console output</h3>\n<p>Finally, we will see stream-based processing in action. Let us set an update interval of 5 seconds.</p>\n\n</div>"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1590365012512_-2000840488",
+      "id": "paragraph_1590365012512_-2000840488",
+      "dateCreated": "2020-05-25T00:03:32+0000",
+      "dateStarted": "2020-05-25T01:44:30+0000",
+      "dateFinished": "2020-05-25T01:44:30+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:124"
+    },
+    {
+      "text": "// Create and start a streaming query on the same TCP/IP input stream\nval consoleQuery = socketDF\n  .writeStream\n  .outputMode(\"append\")\n  .format(\"console\")\n  .start()",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-25T02:24:05+0000",
+      "config": {
+        "colWidth": 12,
+        "fontSize": 9,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/scala"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1590364433946_-196295345",
+      "id": "paragraph_1590364433946_-196295345",
+      "dateCreated": "2020-05-24T23:53:53+0000",
+      "dateStarted": "2020-05-25T02:24:05+0000",
+      "dateFinished": "2020-05-25T02:24:06+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:125"
+    },
+    {
+      "text": "%md\nIssue the following cell a few times before stopping this trivial query.",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-25T00:20:13+0000",
+      "config": {
+        "colWidth": 12,
+        "fontSize": 9,
+        "enabled": false,
+        "results": {},
+        "editorSetting": {
+          "language": "text",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/text",
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<p>Issue the following cell a few times before stopping this trivial query.</p>\n\n</div>"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1590365218580_651540030",
+      "id": "paragraph_1590365218580_651540030",
+      "dateCreated": "2020-05-25T00:06:58+0000",
+      "dateStarted": "2020-05-25T00:20:09+0000",
+      "dateFinished": "2020-05-25T00:20:09+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:126"
+    },
+    {
+      "text": "spark.streams.active",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-25T02:24:15+0000",
+      "config": {
+        "colWidth": 12,
+        "fontSize": 9,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/scala"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1590365220818_1028967847",
+      "id": "paragraph_1590365220818_1028967847",
+      "dateCreated": "2020-05-25T00:07:00+0000",
+      "dateStarted": "2020-05-25T02:24:15+0000",
+      "dateFinished": "2020-05-25T02:24:16+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:127"
+    },
+    {
+      "text": "%md\nStop the query when you have seen enough.",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-25T00:19:56+0000",
+      "config": {
+        "colWidth": 12,
+        "fontSize": 9,
+        "enabled": false,
+        "results": {},
+        "editorSetting": {
+          "language": "text",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/text",
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<p>Stop the query when you have seen enough.</p>\n\n</div>"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1590365279388_-363941900",
+      "id": "paragraph_1590365279388_-363941900",
+      "dateCreated": "2020-05-25T00:07:59+0000",
+      "dateStarted": "2020-05-25T00:19:52+0000",
+      "dateFinished": "2020-05-25T00:19:53+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:128"
+    },
+    {
+      "text": "consoleQuery.stop()",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-25T02:24:23+0000",
+      "config": {
+        "colWidth": 12,
+        "fontSize": 9,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/scala"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1590365223536_1133035361",
+      "id": "paragraph_1590365223536_1133035361",
+      "dateCreated": "2020-05-25T00:07:03+0000",
+      "dateStarted": "2020-05-25T02:24:23+0000",
+      "dateFinished": "2020-05-25T02:24:24+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:129"
+    },
+    {
+      "text": "%md\n## Structured console output\nNow it is time to apply our previous code to parse the input stream into `RuneData`.",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-25T02:23:51+0000",
+      "config": {
+        "colWidth": 12,
+        "fontSize": 9,
+        "enabled": false,
+        "results": {},
+        "editorSetting": {
+          "language": "text",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/text",
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<h2>Structured console output</h2>\n<p>Now it is time to apply our previous code to parse the input stream into <code>RuneData</code>.</p>\n\n</div>"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1590365383386_-132734152",
+      "id": "paragraph_1590365383386_-132734152",
+      "dateCreated": "2020-05-25T00:09:43+0000",
+      "dateStarted": "2020-05-25T02:23:47+0000",
+      "dateFinished": "2020-05-25T02:23:47+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:130"
+    },
+    {
+      "text": "socketDF.createOrReplaceTempView(\"runeUpdatesDF\")",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-25T02:25:32+0000",
+      "config": {
+        "colWidth": 12,
+        "fontSize": 9,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/scala"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1590366117502_-920559067",
+      "id": "paragraph_1590366117502_-920559067",
+      "dateCreated": "2020-05-25T00:21:57+0000",
+      "dateStarted": "2020-05-25T02:25:32+0000",
+      "dateFinished": "2020-05-25T02:25:34+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:131"
+    },
+    {
+      "text": "// Use your solution from above to create the runes streaming dataframe you will need below:\n\ncase class RuneData(material: String, tpe: String, price: Integer)\n\nval myregex = // ... your solution here ...\nval q = // \"SELECT ... () ... FROM runeUpdatesDF\"\n\nval runes = spark.sql(q).as[RuneData]",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-25T03:11:12+0000",
+      "config": {
+        "colWidth": 12,
+        "fontSize": 9,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/scala"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1590363637302_1990183194",
+      "id": "paragraph_1590363637302_1990183194",
+      "dateCreated": "2020-05-24T23:40:37+0000",
+      "dateStarted": "2020-05-25T02:25:41+0000",
+      "dateFinished": "2020-05-25T02:25:46+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:132"
+    },
+    {
+      "text": "%md\nAgain, mind the lazy Spark evaluation!\nWe have prepared a streaming query plan `runes` to get our `RuneData` out of the socket in a streaming fashion. \n\nLike above, start a query that streams to console, let it run for a while, and look at the output when you stop the query or investigate state in between:",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-25T03:12:37+0000",
+      "config": {
+        "colWidth": 12,
+        "fontSize": 9,
+        "enabled": false,
+        "results": {},
+        "editorSetting": {
+          "language": "text",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/text",
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<p>Again, mind the lazy Spark evaluation!<br />\nWe have prepared a streaming query plan <code>runes</code> to get our <code>RuneData</code> out of the socket in a streaming fashion.</p>\n<p>Like above, start a query that streams to console, let it run for a while, and look at the output when you stop the query or investigate state in between:</p>\n\n</div>"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1590366295075_-1846777262",
+      "id": "paragraph_1590366295075_-1846777262",
+      "dateCreated": "2020-05-25T00:24:55+0000",
+      "dateStarted": "2020-05-25T03:12:34+0000",
+      "dateFinished": "2020-05-25T03:12:34+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:133"
+    },
+    {
+      "text": "val rConsoleQuery = runes\n  .writeStream\n  .outputMode(\"append\")\n  .format(\"console\")\n  .start()",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-25T00:50:37+0000",
+      "config": {
+        "colWidth": 12,
+        "fontSize": 9,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/scala"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1590366302193_1646148825",
+      "id": "paragraph_1590366302193_1646148825",
+      "dateCreated": "2020-05-25T00:25:02+0000",
+      "dateStarted": "2020-05-25T00:50:38+0000",
+      "dateFinished": "2020-05-25T00:50:39+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:134"
+    },
+    {
+      "text": "spark.streams.active",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-25T00:50:46+0000",
+      "config": {
+        "colWidth": 12,
+        "fontSize": 9,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/scala"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1590366560008_-96132883",
+      "id": "paragraph_1590366560008_-96132883",
+      "dateCreated": "2020-05-25T00:29:20+0000",
+      "dateStarted": "2020-05-25T00:50:46+0000",
+      "dateFinished": "2020-05-25T00:50:47+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:135"
+    },
+    {
+      "text": "rConsoleQuery.stop()",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-25T00:50:49+0000",
+      "config": {
+        "colWidth": 12,
+        "fontSize": 9,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/scala"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1590366322745_-432112087",
+      "id": "paragraph_1590366322745_-432112087",
+      "dateCreated": "2020-05-25T00:25:22+0000",
+      "dateStarted": "2020-05-25T00:50:49+0000",
+      "dateFinished": "2020-05-25T00:50:50+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:136"
+    },
+    {
+      "text": "%md\n## Writing output to disk\n\nIn a more realistic streaming setup, we would not write our output to the console. \n\nWith Spark Structured Streaming, it is almost trivial to stream the query output straight into the filesystem, into Parquet files ready for further analysis. First, create a directory into which we will write out the data we sample from the stream.",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-25T00:33:27+0000",
+      "config": {
+        "editorSetting": {
+          "language": "text",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/text",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": false,
+        "tableHide": false
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<h2>Writing output to disk</h2>\n<p>In a more realistic streaming setup, we would not write our output to the console.</p>\n<p>With Spark Structured Streaming, it is almost trivial to stream the query output straight into the filesystem, into Parquet files ready for further analysis. First, create a directory into which we will write out the data we sample from the stream.</p>\n\n</div>"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1589832977876_-708254802",
+      "id": "paragraph_1589452249641_515522795",
+      "dateCreated": "2020-05-18T20:16:17+0000",
+      "dateStarted": "2020-05-25T00:33:04+0000",
+      "dateFinished": "2020-05-25T00:33:17+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:137"
+    },
+    {
+      "text": "%sh\nmkdir -p /bigdata",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-25T02:27:03+0000",
+      "config": {
+        "editorSetting": {
+          "language": "sh",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/sh",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": []
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1589832977876_-1421914142",
+      "id": "paragraph_1589449045934_-244136830",
+      "dateCreated": "2020-05-18T20:16:17+0000",
+      "dateStarted": "2020-05-25T02:27:03+0000",
+      "dateFinished": "2020-05-25T02:27:15+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:138"
+    },
+    {
+      "text": "%md\nSetup another writer to copy the query output to disk.",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-24T19:39:10+0000",
+      "config": {
+        "editorSetting": {
+          "language": "text",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/text",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": false,
+        "tableHide": false
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<p>Setup another writer to copy the query output to disk.</p>\n\n</div>"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1589832977876_1074974563",
+      "id": "paragraph_1589452477092_-586340868",
+      "dateCreated": "2020-05-18T20:16:17+0000",
+      "dateStarted": "2020-05-24T19:39:07+0000",
+      "dateFinished": "2020-05-24T19:39:07+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:139"
+    },
+    {
+      "text": "val streamWriterDisk = runes\n  .writeStream\n  .outputMode(\"append\")\n  .option(\"checkpointLocation\", \"/tmp/checkpoint\")\n  .trigger(Trigger.ProcessingTime(\"2 seconds\"))",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-25T02:27:23+0000",
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1589832977876_-464236901",
+      "id": "paragraph_1589451076971_191695654",
+      "dateCreated": "2020-05-18T20:16:17+0000",
+      "dateStarted": "2020-05-25T02:27:23+0000",
+      "dateFinished": "2020-05-25T02:27:23+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:140"
+    },
+    {
+      "text": "%md\nReady?\n\nThen start the query!",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-25T02:27:38+0000",
+      "config": {
+        "colWidth": 12,
+        "fontSize": 9,
+        "enabled": false,
+        "results": {},
+        "editorSetting": {
+          "language": "text",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/text",
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<p>Ready?</p>\n<p>Then start the query!</p>\n\n</div>"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1590370516708_-1662229510",
+      "id": "paragraph_1590370516708_-1662229510",
+      "dateCreated": "2020-05-25T01:35:16+0000",
+      "dateStarted": "2020-05-25T02:27:30+0000",
+      "dateFinished": "2020-05-25T02:27:30+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:141"
+    },
+    {
+      "text": "val stream2disk = streamWriterDisk\n  .start(\"/bigdata\")",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-25T02:27:42+0000",
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true,
+        "editorHide": false
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1590343545514_1652541639",
+      "id": "paragraph_1590343545514_1652541639",
+      "dateCreated": "2020-05-24T18:05:45+0000",
+      "dateStarted": "2020-05-25T02:27:42+0000",
+      "dateFinished": "2020-05-25T02:27:44+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:142"
+    },
+    {
+      "text": "%md\nIf all worked out well, the following command lists a running streaming query (in a Scala Array).",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-25T01:34:51+0000",
+      "config": {
+        "colWidth": 12,
+        "fontSize": 9,
+        "enabled": false,
+        "results": {},
+        "editorSetting": {
+          "language": "text",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/text",
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<p>If all worked out well, the following command lists a running streaming query (in a Scala Array).</p>\n\n</div>"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1590368943647_587099821",
+      "id": "paragraph_1590368943647_587099821",
+      "dateCreated": "2020-05-25T01:09:03+0000",
+      "dateStarted": "2020-05-25T01:34:42+0000",
+      "dateFinished": "2020-05-25T01:34:45+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:143"
+    },
+    {
+      "text": "spark.streams.active",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-25T02:27:50+0000",
+      "config": {
+        "colWidth": 12,
+        "fontSize": 9,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/scala"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1590367515865_536586416",
+      "id": "paragraph_1590367515865_536586416",
+      "dateCreated": "2020-05-25T00:45:15+0000",
+      "dateStarted": "2020-05-25T02:27:50+0000",
+      "dateFinished": "2020-05-25T02:27:51+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:144"
+    },
+    {
+      "text": "%md\nIn case of missing output or other reasons to suspect an error, check the streaming query's exception state:",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-25T01:08:51+0000",
+      "config": {
+        "colWidth": 12,
+        "fontSize": 9,
+        "enabled": false,
+        "results": {},
+        "editorSetting": {
+          "language": "text",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/text",
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<p>In case of missing output or other reasons to suspect an error, check the streaming query&rsquo;s exception state:</p>\n\n</div>"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1590368877516_1943440320",
+      "id": "paragraph_1590368877516_1943440320",
+      "dateCreated": "2020-05-25T01:07:57+0000",
+      "dateStarted": "2020-05-25T01:08:42+0000",
+      "dateFinished": "2020-05-25T01:08:47+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:145"
+    },
+    {
+      "text": "stream2disk.exception",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-25T01:24:35+0000",
+      "config": {
+        "colWidth": 12,
+        "fontSize": 9,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/scala"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1590368773239_1239609256",
+      "id": "paragraph_1590368773239_1239609256",
+      "dateCreated": "2020-05-25T01:06:13+0000",
+      "dateStarted": "2020-05-25T01:24:35+0000",
+      "dateFinished": "2020-05-25T01:24:35+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:146"
+    },
+    {
+      "text": "%md\nSlowly but steadily, your disk may fill up:",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-25T01:29:55+0000",
+      "config": {
+        "colWidth": 12,
+        "fontSize": 9,
+        "enabled": false,
+        "results": {},
+        "editorSetting": {
+          "language": "text",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/text",
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<p>Slowly but steadily, your disk may fill up:</p>\n\n</div>"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1590369939018_46179868",
+      "id": "paragraph_1590369939018_46179868",
+      "dateCreated": "2020-05-25T01:25:39+0000",
+      "dateStarted": "2020-05-25T01:29:49+0000",
+      "dateFinished": "2020-05-25T01:29:49+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:147"
+    },
+    {
+      "text": "%sh\ndu --si /bigdata",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-25T02:29:21+0000",
+      "config": {
+        "colWidth": 12,
+        "fontSize": 9,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "sh",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "editorMode": "ace/mode/sh"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1590332129421_792210783",
+      "id": "paragraph_1590332129421_792210783",
+      "dateCreated": "2020-05-24T14:55:29+0000",
+      "dateStarted": "2020-05-25T02:29:21+0000",
+      "dateFinished": "2020-05-25T02:29:21+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:148"
+    },
+    {
+      "text": "// Stop the stream after a while;\n// for example, when say when you collected a few megabytes of data:\nstream2disk.stop()",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-25T02:29:01+0000",
+      "config": {
+        "colWidth": 12,
+        "fontSize": 9,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/scala"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1590369941493_1881016502",
+      "id": "paragraph_1590369941493_1881016502",
+      "dateCreated": "2020-05-25T01:25:41+0000",
+      "dateStarted": "2020-05-25T02:29:01+0000",
+      "dateFinished": "2020-05-25T02:29:03+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:149"
+    },
+    {
+      "text": "%md\nCheckpointing is what is needed for fault-tolerance in an operational streaming setting. I'd be happy if you'd dive into it, but it's ok for now to just take that for granted. Roughly, because we defined a trigger on this query, every other second a checkpoint should have been created, and a microbatch written to disk.",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-25T02:34:12+0000",
+      "config": {
+        "colWidth": 12,
+        "fontSize": 9,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "text",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/text",
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<p>Checkpointing is what is needed for fault-tolerance in an operational streaming setting. I&rsquo;d be happy if you&rsquo;d dive into it, but it&rsquo;s ok for now to just take that for granted. Roughly, because we defined a trigger on this query, every other second a checkpoint should have been created, and a microbatch written to disk.</p>\n\n</div>"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1590342468854_82445142",
+      "id": "paragraph_1590342468854_82445142",
+      "dateCreated": "2020-05-24T17:47:48+0000",
+      "dateStarted": "2020-05-25T02:34:05+0000",
+      "dateFinished": "2020-05-25T02:34:18+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:150"
+    },
+    {
+      "text": "%sh\necho \"Checkpoints: $(eval ls /bigdata | wc -l)\"",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-25T02:32:07+0000",
+      "config": {
+        "editorSetting": {
+          "language": "sh",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/sh",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1589832977876_-1906142305",
+      "id": "paragraph_1589453278436_-2041112869",
+      "dateCreated": "2020-05-18T20:16:17+0000",
+      "dateStarted": "2020-05-25T02:32:10+0000",
+      "dateFinished": "2020-05-25T02:32:21+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:151"
+    },
+    {
+      "text": "%md\n## Working with the data collected\nWe can open the sample that was written to disk for analysis using the Dataframe API like we did in assignment 3B. Consider for example a few aggregate queries to produce average price over all items of a certain material, or the minimum or maximum price paid in an transaction.",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-25T03:01:53+0000",
+      "config": {
+        "editorSetting": {
+          "language": "text",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/text",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": false
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<h2>Working with the data collected</h2>\n<p>We can open the sample that was written to disk for analysis using the Dataframe API like we did in assignment 3B. Consider for example a few aggregate queries to produce average price over all items of a certain material, or the minimum or maximum price paid in an transaction.</p>\n\n</div>"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1589832977876_-517107245",
+      "id": "paragraph_1589453362862_-465527225",
+      "dateCreated": "2020-05-18T20:16:17+0000",
+      "dateStarted": "2020-05-25T03:01:45+0000",
+      "dateFinished": "2020-05-25T03:01:50+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:152"
+    },
+    {
+      "text": "val runes = spark.\n  .read\n  .parquet(\"/bigdata/part-*\")\n  .createOrReplaceTempView(\"runes\")",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-25T02:47:01+0000",
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1589832977876_-790732454",
+      "id": "paragraph_1589447453688_-947324524",
+      "dateCreated": "2020-05-18T20:16:17+0000",
+      "dateStarted": "2020-05-25T02:39:42+0000",
+      "dateFinished": "2020-05-25T02:40:28+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:153"
+    },
+    {
+      "text": "spark.sql(\"SELECT material, avg(price) FROM runes GROUP BY material\").show()",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-25T02:48:22+0000",
+      "config": {
+        "colWidth": 12,
+        "fontSize": 9,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/scala"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1590367616021_552396401",
+      "id": "paragraph_1590367616021_552396401",
+      "dateCreated": "2020-05-25T00:46:56+0000",
+      "dateStarted": "2020-05-25T02:48:22+0000",
+      "dateFinished": "2020-05-25T02:48:27+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:154"
+    },
+    {
+      "text": "spark.sql(\"SELECT min(price), max(price) FROM runes\").show()",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-25T02:49:41+0000",
+      "config": {
+        "colWidth": 12,
+        "fontSize": 9,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/scala"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1590374447162_-1852692101",
+      "id": "paragraph_1590374447162_-1852692101",
+      "dateCreated": "2020-05-25T02:40:47+0000",
+      "dateStarted": "2020-05-25T02:49:41+0000",
+      "dateFinished": "2020-05-25T02:49:42+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:155"
+    },
+    {
+      "text": "%md\n## Next steps\n\nYou have reached the point where the initiative is yours; time for some creativity!\n\nTry to create your own dashboard, that you might have used to take decisions in the original game.\nAt the minimum, write code to answer the following questions:\n\n- How many rune items were sold?\n- How many of each item type was sold?\n- How much gold was spent buying swords?\n\nIn the previous step however, we wrote the individual transactions to disk and then carried out analyses using static dataframes. Can you get (one or more of these) other interesting properties of the stream to be updated per microbatch (instead of being run on the full dataset loaded into the cluster)?\n\nCan you think of related queries, or have a go at an even more advanced report that is continuously updated?\n\nI am looking forward to reading about your results in the A5 blog posts!",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-25T03:05:48+0000",
+      "config": {
+        "editorSetting": {
+          "language": "text",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/text",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": false
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<h2>Next steps</h2>\n<p>You have reached the point where the initiative is yours; time for some creativity!</p>\n<p>Try to create your own dashboard, that you might have used to take decisions in the original game.<br />\nAt the minimum, write code to answer the following questions:</p>\n<ul>\n<li>How many rune items were sold?</li>\n<li>How many of each item type was sold?</li>\n<li>How much gold was spent buying swords?</li>\n</ul>\n<p>In the previous step however, we wrote the individual transactions to disk and then carried out analyses using static dataframes. Can you get (one or more of these) other interesting properties of the stream to be updated per microbatch (instead of being run on the full dataset loaded into the cluster)?</p>\n<p>Can you think of related queries, or have a go at an even more advanced report that is continuously updated?</p>\n<p>I am looking forward to reading about your results in the A5 blog posts!</p>\n\n</div>"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1589832977876_290760412",
+      "id": "paragraph_1589447952519_-1056716615",
+      "dateCreated": "2020-05-18T20:16:17+0000",
+      "dateStarted": "2020-05-25T03:05:45+0000",
+      "dateFinished": "2020-05-25T03:05:46+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:156"
+    },
+    {
+      "text": "%md\n\n## In case of despair...\n\nIf you get stuck, try the following:\n\n```\ndocker stop snbz\ndocker start snbz\ndocker exec snbz sh -c \"python stream.py &\"\n```\n\nCheck the logs for obvious error notifications or warnings:\n\n```\ndocker logs snbz\n```\n\nCheck state of files/directories/etc. inside the container:\n\n```\ndocker exec -it snbz /bin/bash\n```\n\nE.g., remove incomplete state from a previous failed attempt:\n\n```\nrm -rf /bigdata /tmp/checkpoint*\n```\n\nStill no luck after checking all of these?\nCome see us for help at the Forum and/or the Matrix room.\n\n_Good luck with the assignment!_",
+      "user": "anonymous",
+      "dateUpdated": "2020-05-25T03:02:16+0000",
+      "config": {
+        "colWidth": 12,
+        "fontSize": 9,
+        "enabled": false,
+        "results": {},
+        "editorSetting": {
+          "language": "text",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/text",
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<h2>In case of despair&hellip;</h2>\n<p>If you get stuck, try the following:</p>\n<pre><code>docker stop snbz\ndocker start snbz\ndocker exec snbz sh -c &quot;python stream.py &amp;&quot;\ndocker logs snbz\n</code></pre>\n<p>Check if things look alright inside the container:</p>\n<pre><code>docker exec -it snbz /bin/bash\n</code></pre>\n<p>Remove state from a previous failed attempt:</p>\n<pre><code>rm -rf /bigdata /tmp/checkpoint*\n</code></pre>\n<p>Still no luck after checking all of these?<br />\nCome see us for help at the Forum and/or the Matrix room.</p>\n<p><em>Good luck with the assignment!</em></p>\n\n</div>"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1590371520582_267448686",
+      "id": "paragraph_1590371520582_267448686",
+      "dateCreated": "2020-05-25T01:52:00+0000",
+      "dateStarted": "2020-05-25T01:56:24+0000",
+      "dateFinished": "2020-05-25T01:56:29+0000",
+      "status": "READY",
+      "$$hashKey": "object:157"
+    }
+  ],
+  "name": "Spark Streaming",
+  "id": "2F9NA1JU4",
+  "defaultInterpreterGroup": "spark",
+  "version": "0.9.0-preview1",
+  "noteParams": {},
+  "noteForms": {},
+  "angularObjects": {},
+  "config": {
+    "isZeppelinNotebookCronEnable": false,
+    "looknfeel": "default",
+    "personalizedMode": "false"
+  },
+  "info": {},
+  "path": "/Spark Streaming",
+  "checkpoint": {
+    "message": "Student version"
+  }
+}
