@@ -19,6 +19,10 @@ MAINTAINER Arjen P. de Vries <arjen@acm.org>
 ENV Z_VERSION="0.9.0"
 ENV HADOOP_VER="3.2.2"
 ENV SPARK_VER="3.0.2"
+ENV SPARK_BIN_VER="3.0.2-bin-hadoop3.2"
+
+# Make sure we download:
+# https://ftp.nluug.nl/internet/apache/spark/spark-3.0.2/spark-3.0.2-bin-hadoop3.2.tgz
 
 ENV LOG_TAG="[ZEPPELIN_${Z_VERSION}]:" \
     Z_HOME="/zeppelin" \
@@ -42,19 +46,12 @@ RUN echo "$LOG_TAG Install python related packages" && \
     pip install -q pycodestyle==2.6.0 && \
     ln -sf /usr/bin/python3 /usr/bin/python
 
-# Build correct Scala version
 # prepare, maybe add a flag to compile for hadoop 3 here?
 WORKDIR /
 RUN echo "$LOG_TAG setting up spark" && \
-  wget --quiet --show-progress http://ftp.nluug.nl/internet/apache/spark/spark-${SPARK_VER}/spark-${SPARK_VER}.tgz && \
-  tar -xzf spark-${SPARK_VER}.tgz && \
-  rm spark-${SPARK_VER}.tgz && \
-  ./spark-${SPARK_VER}/dev/change-scala-version.sh 2.12
-
-# build
-WORKDIR /spark-${SPARK_VER}
-RUN echo "$LOG_TAG building spark ${SPARK_VER}" && \
-  ./build/mvn -DskipTests -Pscala-2.12 clean package
+  wget --quiet --show-progress http://ftp.nluug.nl/internet/apache/spark/spark-${SPARK_VER}/spark-${SPARK_BIN_VER}.tgz && \
+  tar -xzf spark-${SPARK_BIN_VER}.tgz && \
+  rm spark-${SPARK_BIN_VER}.tgz
 
 #
 # TODO: Can we remove more from the netinst?
