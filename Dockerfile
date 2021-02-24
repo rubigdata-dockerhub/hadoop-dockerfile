@@ -115,7 +115,6 @@ ADD core-site.xml hdfs-site.xml /hadoop-${HADOOP_VER}/etc/hadoop/
 
 RUN \
   echo export JAVA_HOME=${JAVA_HOME} >> ${HOME}/.bashrc && \
-  export TERM=xterm && \
   ssh-keygen -t rsa -P '' -f ${HOME}/.ssh/id_rsa && \
   cat ${HOME}/.ssh/id_rsa.pub >> ${HOME}/.ssh/authorized_keys && \
   chmod 0600 ${HOME}/.ssh/authorized_keys && \
