@@ -13,12 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM alpine:3.13.2
+FROM ubuntu:16.04
 MAINTAINER Arjen P. de Vries <arjen@acm.org>
 
-ENV Z_VERSION="0.9.0"
-ENV HADOOP_VER="3.2.2"
-ENV SPARK_VER="3.0.2"
+ENV Z_VERSION="0.9.0-preview1"
 
 ENV LOG_TAG="[ZEPPELIN_${Z_VERSION}]:" \
     Z_HOME="/zeppelin" \
@@ -26,35 +24,55 @@ ENV LOG_TAG="[ZEPPELIN_${Z_VERSION}]:" \
     LC_ALL=en_US.UTF-8 \
     ZEPPELIN_ADDR="0.0.0.0"
 
-RUN echo "$LOG_TAG install basic packages including tini" && \
-    apk add --no-cache coreutils mandoc man-pages \
-      bash bash-doc bash-completion \
-      wget wget-doc curl curl-doc \
-      grep grep-doc sed sed-doc \
-      tini
+RUN echo "$LOG_TAG update and install basic packages" && \
+    apt-get -y update && \
+    apt-get install -y locales && \
+    locale-gen $LANG && \
+    apt-get install -y software-properties-common && \
+    apt -y autoclean && \
+    apt -y dist-upgrade && \
+    apt-get install -y build-essential
 
-ENV JAVA_HOME=/usr/lib/jvm/java-1.8-openjdk
+RUN echo "$LOG_TAG install tini related packages" && \
+    apt-get install -y wget curl grep sed dpkg && \
+    TINI_VERSION=`curl https://github.com/krallin/tini/releases/latest | grep -o "/v.*\"" | sed 's:^..\(.*\).$:\1:'` && \
+    curl -L "https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini_${TINI_VERSION}.deb" > tini.deb && \
+    dpkg -i tini.deb && \
+    rm tini.deb
+
+ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
 RUN echo "$LOG_TAG Install java8" && \
-    apk add --no-cache ttf-dejavu openjdk8
+    apt-get -y update && \
+    apt-get install -y openjdk-8-jdk && \
+    rm -rf /var/lib/apt/lists/*
 
 RUN echo "$LOG_TAG Install python related packages" && \
-    apk add --no-cache python3 python3-dev py3-pip py3-numpy && \
-    pip install -q pycodestyle==2.6.0 && \
+    apt-get -y update && \
+    apt-get install -y python-dev python-pip && \
+    pip install -q pycodestyle==2.5.0 && \
+    apt install python3 -y && \
+    apt install python3-pip -y && \
+    python3 -m pip install numpy && \
     ln -sf /usr/bin/python3 /usr/bin/python
+
+RUN echo "$LOG_TAG Cleanup" && \
+    apt-get autoclean && \
+    apt-get clean
 
 # Build correct Scala version
 # prepare, maybe add a flag to compile for hadoop 3 here?
 WORKDIR /
 RUN echo "$LOG_TAG setting up spark" && \
-  wget --quiet --show-progress http://ftp.nluug.nl/internet/apache/spark/spark-${SPARK_VER}/spark-${SPARK_VER}.tgz && \
-  tar -xzf spark-${SPARK_VER}.tgz && \
-  rm spark-${SPARK_VER}.tgz && \
-  ./spark-${SPARK_VER}/dev/change-scala-version.sh 2.12
+  wget https://github.com/apache/spark/archive/v2.4.4.tar.gz && \
+  tar -xvf v2.4.4.tar.gz && \
+  rm v2.4.4.tar.gz && \
+  ./spark-2.4.4/dev/change-scala-version.sh 2.12
 
 # build
-WORKDIR /spark-${SPARK_VER}
-RUN echo "$LOG_TAG building spark ${SPARK_VER}" && \
+WORKDIR /spark-2.4.4
+RUN echo "$LOG_TAG building spark" && \
   ./build/mvn -DskipTests -Pscala-2.12 clean package
+
 
 #
 # TODO: Can we remove more from the netinst?
@@ -63,8 +81,8 @@ RUN echo "$LOG_TAG building spark ${SPARK_VER}" && \
 #
 WORKDIR /
 RUN echo "$LOG_TAG Download Zeppelin binary" && \
-    wget --quiet --show-progress -O /tmp/zeppelin-${Z_VERSION}-bin-netinst.tgz https://ftp.nluug.nl/internet/apache/zeppelin/zeppelin-${Z_VERSION}/zeppelin-${Z_VERSION}-bin-netinst.tgz && \
-    tar -zxf /tmp/zeppelin-${Z_VERSION}-bin-netinst.tgz && \
+    wget --quiet -O /tmp/zeppelin-${Z_VERSION}-bin-netinst.tgz http://archive.apache.org/dist/zeppelin/zeppelin-${Z_VERSION}/zeppelin-${Z_VERSION}-bin-netinst.tgz && \
+    tar -zxvf /tmp/zeppelin-${Z_VERSION}-bin-netinst.tgz && \
     rm -rf /tmp/zeppelin-${Z_VERSION}-bin-netinst.tgz && \
     mkdir -p ${Z_HOME} && \
     mv /zeppelin-${Z_VERSION}-bin-netinst/* ${Z_HOME}/ && \
@@ -83,38 +101,23 @@ COPY log4j.properties ${Z_HOME}/conf/
 USER 0
 
 EXPOSE 8080
-EXPOSE 9000
 
-EXPOSE 4040
-EXPOSE 4041
-EXPOSE 4042
-EXPOSE 4043
-EXPOSE 4044
-EXPOSE 4045
 
 #
 # Course specific stuff follows - needs thorough check
 #
 
 RUN \
-  apk add --no-cache \
-    less less-doc \
-    nano nano-doc \
-    vim vim-doc vim-tutor \
-    openssh openssh-doc \
-    rsync rsync-doc \
-    netcat-openbsd netcat-openbsd-doc && \
+  apt-get update -y && \
+  apt-get dist-upgrade -y && \
+  apt-get install -y wget less nano rsync ssh vim-athena netcat && \
   cd / && \
-  wget --quiet --show-progress http://ftp.nluug.nl/internet/apache/hadoop/common/hadoop-${HADOOP_VER}/hadoop-${HADOOP_VER}.tar.gz && \
-  tar -xzf hadoop-${HADOOP_VER}.tar.gz && \
-  rm -rf hadoop-${HADOOP_VER}.tar.gz && \
-  bash -c "echo export JAVA_HOME=${JAVA_HOME} >> /hadoop-${HADOOP_VER}/etc/hadoop/hadoop-env.sh" && \
-  bash -c "for envvar in HDFS_NAMENODE HDFS_DATANODE HDFS_SECONDARYNAMENODE YARN_RESOURCEMANAGER YARN_NODEMANAGER \
-   do \
-     echo export ${envvar}_USER=root >> /hadoop-${HADOOP_VER}/etc/hadoop/hadoop-env.sh \
-   done"
+  wget http://ftp.nluug.nl/internet/apache/hadoop/common/hadoop-3.2.1/hadoop-3.2.1.tar.gz && \
+  tar xzfp hadoop-3.2.1.tar.gz && \
+  rm -rf hadoop-3.2.1.tar.gz && \
+  echo export JAVA_HOME=${JAVA_HOME} >> /hadoop-3.2.1/etc/hadoop/hadoop-env.sh
 
-ADD core-site.xml hdfs-site.xml /${HADOOP_VER}/etc/hadoop/
+ADD core-site.xml hdfs-site.xml /hadoop-3.2.1/etc/hadoop/
 
 RUN \
   echo export JAVA_HOME=${JAVA_HOME} >> ${HOME}/.bashrc && \
@@ -123,11 +126,15 @@ RUN \
   cat ${HOME}/.ssh/id_rsa.pub >> ${HOME}/.ssh/authorized_keys && \
   chmod 0600 ${HOME}/.ssh/authorized_keys && \
   echo "service ssh start > /dev/null" >> ${HOME}/.bashrc && \
-  echo export PATH=$PATH:/hadoop-${HADOOP_VER}/bin:/hadoop-${HADOOP_VER}/sbin >> ${HOME}/.bashrc
+  echo export PATH=$PATH:/hadoop-3.2.1/bin:/hadoop-3.2.1/sbin >> ${HOME}/.bashrc
+
+RUN \
+  cd /zeppelin/lib && \
+  wget https://jitpack.io/com/github/sara-nl/warcutils/8736afad41/warcutils-8736afad41.jar
 
 COPY interpreter.json /zeppelin/conf/interpreter.json
 
-ENTRYPOINT [ "/sbin/tini", "--" ]
+ENTRYPOINT [ "/usr/bin/tini", "--" ]
 
 WORKDIR /
 CMD ["/zeppelin/bin/zeppelin.sh"]
