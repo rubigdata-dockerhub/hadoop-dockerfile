@@ -108,13 +108,13 @@ RUN \
   wget --quiet --show-progress http://ftp.nluug.nl/internet/apache/hadoop/common/hadoop-${HADOOP_VER}/hadoop-${HADOOP_VER}.tar.gz && \
   tar -xzf hadoop-${HADOOP_VER}.tar.gz && \
   rm -rf hadoop-${HADOOP_VER}.tar.gz && \
-  bash -c "echo export JAVA_HOME=${JAVA_HOME} >> /hadoop-${HADOOP_VER}/etc/hadoop/hadoop-env.sh" && \
-  bash -c "for envvar in HDFS_NAMENODE HDFS_DATANODE HDFS_SECONDARYNAMENODE YARN_RESOURCEMANAGER YARN_NODEMANAGER \
+  bash -c 'echo export JAVA_HOME=${JAVA_HOME} >> /hadoop-${HADOOP_VER}/etc/hadoop/hadoop-env.sh' && \
+  bash -c 'for ev in HDFS_NAMENODE HDFS_DATANODE HDFS_SECONDARYNAMENODE YARN_RESOURCEMANAGER YARN_NODEMANAGER ; \
    do \
-     echo export ${envvar}_USER=root >> /hadoop-${HADOOP_VER}/etc/hadoop/hadoop-env.sh \
-   done"
+     echo export ${ev}_USER=root ; \
+   done >> /hadoop-${HADOOP_VER}/etc/hadoop/hadoop-env.sh'
 
-ADD core-site.xml hdfs-site.xml /${HADOOP_VER}/etc/hadoop/
+ADD core-site.xml hdfs-site.xml /hadoop-${HADOOP_VER}/etc/hadoop/
 
 RUN \
   echo export JAVA_HOME=${JAVA_HOME} >> ${HOME}/.bashrc && \
