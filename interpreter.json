@@ -1180,25 +1180,6 @@
         {
           "groupArtifactVersion": "org.jsoup:jsoup:1.9.2",
           "local": false
-        },
-        {
-          "groupArtifactVersion": "org.jwat:jwat-common:1.0.0",
-          "local": false,
-          "exclusions": []
-        },
-        {
-          "groupArtifactVersion": "org.jwat:jwat-warc:1.0.0",
-          "local": false,
-          "exclusions": []
-        },
-        {
-          "groupArtifactVersion": "org.jwat:jwat-gzip:1.0.0",
-          "local": false,
-          "exclusions": []
-        },
-        {
-          "groupArtifactVersion": "/zeppelin/lib/warcutils-8736afad41.jar",
-          "local": false
         }
       ],
       "option": {
