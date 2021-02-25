@@ -113,12 +113,18 @@ RUN \
 
 ADD core-site.xml hdfs-site.xml /hadoop-${HADOOP_VER}/etc/hadoop/
 
-RUN \
-  echo export JAVA_HOME=${JAVA_HOME} >> ${HOME}/.bashrc && \
+RUN echo "$LOG_TAG initiate sshd at boot" && \
+  mkdir -p /var/run/sshd && \
+  ssh-keygen -f /etc/ssh/ssh_host_rsa_key -N '' -t rsa && \
+  echo "Welcome @ RUBigData 2021 Docker (SSH)" > /etc/motd && \
+  sed -i s/#PermitRootLogin.*/PermitRootLogin\ yes/ /etc/ssh/sshd_config && \
+  echo "root:rubigdata2021" | chpasswd && \
   ssh-keygen -t rsa -P '' -f ${HOME}/.ssh/id_rsa && \
   cat ${HOME}/.ssh/id_rsa.pub >> ${HOME}/.ssh/authorized_keys && \
   chmod 0600 ${HOME}/.ssh/authorized_keys && \
-  echo "service ssh start > /dev/null" >> ${HOME}/.bashrc && \
+  echo localhost $(cat /etc/ssh/ssh_host_rsa_key.pub) >> ${HOME}/.ssh/known_hosts && \
+  echo '[ ! -f /var/run/sshd.pid ] && /usr/sbin/sshd > /dev/null' >> ${HOME}/.bashrc && \
+  echo export JAVA_HOME=${JAVA_HOME} >> ${HOME}/.bashrc && \
   echo export PATH=$PATH:/hadoop-${HADOOP_VER}/bin:/hadoop-${HADOOP_VER}/sbin >> ${HOME}/.bashrc
 
 COPY interpreter.json /zeppelin/conf/interpreter.json
