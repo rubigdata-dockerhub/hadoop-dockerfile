@@ -1,5 +1,25 @@
 ## lessons from 2021 (so far)
 
+### Alpine version
+
+Alpine is at version `3.13.2` with a `bash v5` whereas the Alpine with
+OpenJDK8 is still at `3.9.4` with a `bash v4`.
+
+    cat /etc/alpine-release
+	
+Not sure if we can get a working mix of both.
+Workarounds are possible, so I have stored the current state for
+future reference. However, I have read up a bit more... and this
+convinced me to back off and choose a different path:
+http://crunchtools.com/comparison-linux-container-images/
+    
+We got similar problems. The dependency on `musl` makes it really hard
+to reuse packages that are pre-built, which could be an option if this
+were a real company and striving for the smallest ever, but does not
+seem the right path with a yearly development cycle.
+
+### Multi-stage build
+
 Trim down images using multi-stage build:
 https://docs.docker.com/develop/develop-images/multistage-build/
 
