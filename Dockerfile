@@ -31,7 +31,10 @@ ENV LOG_TAG="[ZEPPELIN_${Z_VERSION}]:" \
     ZEPPELIN_ADDR="0.0.0.0"
 
 RUN echo "$LOG_TAG install basic packages including tini" && \
-    apk add --no-cache coreutils mandoc man-pages \
+    apk add --no-cache alpine alpine-doc \
+      coreutils coreutils-doc \
+      ncurses ncurses-doc \
+      mandoc man-pages \
       bash bash-doc bash-completion \
       wget wget-doc curl curl-doc \
       grep grep-doc sed sed-doc \
@@ -52,6 +55,7 @@ RUN echo "$LOG_TAG setting up spark" && \
   wget --quiet --show-progress http://ftp.nluug.nl/internet/apache/spark/spark-${SPARK_VER}/spark-${SPARK_BIN_VER}.tgz && \
   tar -xzf spark-${SPARK_BIN_VER}.tgz && \
   rm spark-${SPARK_BIN_VER}.tgz
+
 
 #
 # TODO: Can we remove more from the netinst?
@@ -106,6 +110,7 @@ RUN \
   tar -xzf hadoop-${HADOOP_VER}.tar.gz && \
   rm -rf hadoop-${HADOOP_VER}.tar.gz && \
   bash -c 'echo export JAVA_HOME=${JAVA_HOME} >> /hadoop-${HADOOP_VER}/etc/hadoop/hadoop-env.sh' && \
+  bash -c 'echo export HADOOP_HOME=/hadoop-${HADOOP_VER} >> /hadoop-${HADOOP_VER}/etc/hadoop/hadoop-env.sh' && \
   bash -c 'for ev in HDFS_NAMENODE HDFS_DATANODE HDFS_SECONDARYNAMENODE YARN_RESOURCEMANAGER YARN_NODEMANAGER ; \
    do \
      echo export ${ev}_USER=root ; \
@@ -125,6 +130,8 @@ RUN echo "$LOG_TAG initiate sshd at boot" && \
   echo localhost $(cat /etc/ssh/ssh_host_rsa_key.pub) >> ${HOME}/.ssh/known_hosts && \
   echo '[ ! -f /var/run/sshd.pid ] && /usr/sbin/sshd > /dev/null' >> ${HOME}/.bashrc && \
   echo export JAVA_HOME=${JAVA_HOME} >> ${HOME}/.bashrc && \
+  echo . /hadoop-${HADOOP_VER}/etc/hadoop/hadoop-env.sh >> ${HOME}/.bashrc && \
+  echo export SPARK_HOME=/spark-${SPARK_BIN_VER} >> ${HOME}/.bashrc && \
   echo export PATH=$PATH:/hadoop-${HADOOP_VER}/bin:/hadoop-${HADOOP_VER}/sbin >> ${HOME}/.bashrc
 
 COPY interpreter.json /zeppelin/conf/interpreter.json
