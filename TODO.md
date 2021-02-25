@@ -40,6 +40,9 @@ CMD ["java", "Main"]
 The `builder` is only an intermediate image, whereas the second `FROM`
 specifies what is persisted on disk.
 
+Another cool example to trim down RedHats `ubi-mini` even further:
+https://github.com/fatherlinux/ubi-micro/blob/master/ubi8-micro
+
 ## lessons from 2020
 
 Add to `hadoop-env.sh`, or add to the config files a different setting:
