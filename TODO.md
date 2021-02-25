@@ -1,3 +1,27 @@
+## lessons from 2021 (so far)
+
+Trim down images using multi-stage build:
+https://docs.docker.com/develop/develop-images/multistage-build/
+
+Example:
+
+```
+FROM frolvlad/alpine-java:jdk8-slim AS builder
+
+RUN echo 'public class Main { public static void main(String[] args) { System.out.println("Hello World"); } }' > Main.java
+RUN javac Main.java
+
+FROM frolvlad/alpine-java:jre8-slim
+COPY --from=builder /Main.class /
+
+CMD ["java", "Main"]
+```
+
+The `builder` is only an intermediate image, whereas the second `FROM`
+specifies what is persisted on disk.
+
+## lessons from 2020
+
 Add to `hadoop-env.sh`, or add to the config files a different setting:
 
     export HDFS_NAMENODE_USER=root
@@ -14,8 +38,6 @@ and, add to SBT build file to avoid multiple main class errors (but test this):
 mainClass in (Compile, packageBin) := Some("org.rubigdata.RUBigDataApp")
 
 _More from 2020?_
-
-
 
 build.sbt:
 
