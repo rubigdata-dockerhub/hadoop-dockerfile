@@ -1,13 +1,8 @@
-FROM registry.access.redhat.com/ubi8/ubi-minimal
+FROM rubigdata/base
 MAINTAINER Arjen P. de Vries <arjen@acm.org>
 
 # Why use tini:
 # https://github.com/krallin/tini/issues/8#issuecomment-146135930
-
-ENV microdnf="microdnf --disableplugin=subscription-manager"
-ENV wget="wget --quiet --show-progress"
-
-RUN $microdnf install -y wget
 
 # Install tini for signal processing and zombie killing
 ENV TINI_VERSION 0.19.0
@@ -23,8 +18,3 @@ RUN set -eux \
  && rpm -i /tmp/tini.rpm \
  && rm -r "$GNUPGHOME" /tmp/tini.rpm{,.asc} \
  && tini --version
-
-ENTRYPOINT [ "tini", "--" ]
-WORKDIR /
-CMD ["bash"]
-
