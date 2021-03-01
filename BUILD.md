@@ -25,7 +25,11 @@ prepared in the previous step over `base` and adds no more than a
 
     docker build -t "test" --format docker --no-cache -f df-shell .
 	
-You can take this for a test-drive using `docker run --rm -it test`.
+Metadata about the image:
+
+    docker inspect test | jq ".[0].Config.Labels"
+
+You can take a test-drive using `docker run --rm -it test`.
 
 ### Hadoop
 
