@@ -13,13 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM alpine:3.13.2
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.3
 MAINTAINER Arjen P. de Vries <arjen@acm.org>
 
 ENV Z_VERSION="0.9.0"
 ENV HADOOP_VER="3.2.2"
 ENV SPARK_VER="3.0.2"
-ENV SPARK_BIN_VER="3.0.2-bin-hadoop3.2"
+ENV SPARK_BIN_VER="3.0.2-bin-without-hadoop"
 
 # Make sure we download:
 # https://ftp.nluug.nl/internet/apache/spark/spark-3.0.2/spark-3.0.2-bin-hadoop3.2.tgz
@@ -38,11 +38,14 @@ RUN echo "$LOG_TAG install basic packages including tini" && \
       bash bash-doc bash-completion \
       wget wget-doc curl curl-doc \
       grep grep-doc sed sed-doc \
-      tini
+      tini \
+      procps nss openssl
 
 ENV JAVA_HOME=/usr/lib/jvm/java-1.8-openjdk
 RUN echo "$LOG_TAG Install java8" && \
-    apk add --no-cache ttf-dejavu openjdk8
+    apk add --no-cache openjdk8
+
+ENV PATH $PATH:$JAVA_HOME/bin
 
 RUN echo "$LOG_TAG Install python related packages" && \
     apk add --no-cache python3 python3-dev py3-pip py3-numpy && \
@@ -55,7 +58,6 @@ RUN echo "$LOG_TAG setting up spark" && \
   wget --quiet --show-progress http://ftp.nluug.nl/internet/apache/spark/spark-${SPARK_VER}/spark-${SPARK_BIN_VER}.tgz && \
   tar -xzf spark-${SPARK_BIN_VER}.tgz && \
   rm spark-${SPARK_BIN_VER}.tgz
-
 
 #
 # TODO: Can we remove more from the netinst?
@@ -83,8 +85,11 @@ COPY log4j.properties ${Z_HOME}/conf/
 
 USER 0
 
+# Ports:
+# Zeppelin (8080), hadoop (9870), spark (4040-4045)
+
 EXPOSE 8080
-EXPOSE 9000
+EXPOSE 9870
 
 EXPOSE 4040
 EXPOSE 4041
@@ -111,10 +116,22 @@ RUN \
   rm -rf hadoop-${HADOOP_VER}.tar.gz && \
   bash -c 'echo export JAVA_HOME=${JAVA_HOME} >> /hadoop-${HADOOP_VER}/etc/hadoop/hadoop-env.sh' && \
   bash -c 'echo export HADOOP_HOME=/hadoop-${HADOOP_VER} >> /hadoop-${HADOOP_VER}/etc/hadoop/hadoop-env.sh' && \
+  bash -c 'echo export HADOOP_CONF_DIR=/hadoop-${HADOOP_VER}/etc/hadoop >> /hadoop-${HADOOP_VER}/etc/hadoop/hadoop-env.sh' && \
   bash -c 'for ev in HDFS_NAMENODE HDFS_DATANODE HDFS_SECONDARYNAMENODE YARN_RESOURCEMANAGER YARN_NODEMANAGER ; \
    do \
      echo export ${ev}_USER=root ; \
    done >> /hadoop-${HADOOP_VER}/etc/hadoop/hadoop-env.sh'
+
+ENV HADOOP_HOME /hadoop-${HADOOP_VER}
+ENV PATH $PATH:$HADOOP_HOME/bin:$HADOOP_HOME/sbin
+
+ENV HADOOP_PREFIX $HADOOP_HOME
+ENV HADOOP_COMMON_HOME $HADOOP_HOME
+ENV HADOOP_HDFS_HOME $HADOOP_HOME
+ENV HADOOP_MAPRED_HOME $HADOOP_HOME
+ENV HADOOP_YARN_HOME $HADOOP_HOME
+ENV HADOOP_CONF_DIR $HADOOP_HOME/etc/hadoop
+ENV YARN_CONF_DIR $HADOOP_PREFIX/etc/hadoop
 
 ADD core-site.xml hdfs-site.xml /hadoop-${HADOOP_VER}/etc/hadoop/
 
@@ -128,6 +145,7 @@ RUN echo "$LOG_TAG initiate sshd at boot" && \
   cat ${HOME}/.ssh/id_rsa.pub >> ${HOME}/.ssh/authorized_keys && \
   chmod 0600 ${HOME}/.ssh/authorized_keys && \
   echo localhost $(cat /etc/ssh/ssh_host_rsa_key.pub) >> ${HOME}/.ssh/known_hosts && \
+  echo 0.0.0.0 $(cat /etc/ssh/ssh_host_rsa_key.pub) >> ${HOME}/.ssh/known_hosts && \
   echo '[ ! -f /var/run/sshd.pid ] && /usr/sbin/sshd > /dev/null' >> ${HOME}/.bashrc && \
   echo export JAVA_HOME=${JAVA_HOME} >> ${HOME}/.bashrc && \
   echo . /hadoop-${HADOOP_VER}/etc/hadoop/hadoop-env.sh >> ${HOME}/.bashrc && \
