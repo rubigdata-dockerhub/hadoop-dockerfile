@@ -73,7 +73,11 @@ ENV HADOOP_CONF_DIR $HADOOP_HOME/etc/hadoop
 
 ## Hadoop settings
 
-ADD core-site.xml hdfs-site.xml /opt/hadoop/etc/hadoop/
+ADD core-site.xml \
+    hdfs-site.xml \
+    mapred-site.xml \
+    yarn-site.xml \
+    /opt/hadoop/etc/hadoop/
 
 ## SSH setup
 
@@ -90,6 +94,7 @@ RUN echo Configure SSH for user hadoop... \
  && echo . /opt/hadoop/etc/hadoop/hadoop-env.sh >> ${HOME}/.bashrc
 
 EXPOSE 9870
+EXPOSE 8088
 
 ENTRYPOINT [ "tini", "--" ]
 
