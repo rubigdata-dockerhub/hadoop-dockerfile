@@ -1,0 +1,95 @@
+FROM rubigdata/base AS build
+MAINTAINER Arjen P. de Vries <arjen@acm.org>
+
+## Basic tools:
+
+USER root:root
+
+ENV wget="wget --quiet --show-progress --progress=bar:force"
+
+## Hadoop
+#
+RUN echo "Building Hadoop" \
+ && $wget ${APACHE_MIRROR}/hadoop/common/hadoop-${HADOOP_VER}/hadoop-${HADOOP_VER}.tar.gz \
+ && tar -xzf hadoop-${HADOOP_VER}.tar.gz \
+ && echo "export JAVA_HOME=${JAVA_HOME}" >> /hadoop-${HADOOP_VER}/etc/hadoop/hadoop-env.sh \
+ && echo "export HADOOP_HOME=/opt/hadoop" >> /hadoop-${HADOOP_VER}/etc/hadoop/hadoop-env.sh \
+ && echo "export HADOOP_CONF_DIR=/opt/hadoop/etc/hadoop" >> /hadoop-${HADOOP_VER}/etc/hadoop/hadoop-env.sh \
+ && bash -c 'for ev in HDFS_NAMENODE HDFS_DATANODE HDFS_SECONDARYNAMENODE YARN_RESOURCEMANAGER YARN_NODEMANAGER ; \
+   do \
+     echo export ${ev}_USER=hadoop ; \
+   done >> /hadoop-${HADOOP_VER}/etc/hadoop/hadoop-env.sh'
+
+#########################################################
+#########################################################
+
+## Stage 2
+#
+FROM rubigdata/ssh
+
+USER root:root
+
+## Add user hadoop
+#
+ENV HADOOP_GID=1001
+ENV HADOOP_UID=1001
+
+RUN echo "Setting up Hadoop user" \
+ && groupadd -r -g ${HADOOP_GID} hadoop \
+ && useradd -r -m -u ${HADOOP_UID} -g ${HADOOP_GID} -d /opt/hadoop hadoop \
+ && echo $PASS | passwd --stdin hadoop \
+ && usermod -aG wheel hadoop \
+ && echo "%hadoop ALL = NOPASSWD: /opt/ssh/sbin/sshd" > /etc/sudoers.d/hadoop
+ 
+## Tini
+#
+COPY --from=rubigdata/tini:latest /tmp/tini.rpm /tmp
+
+RUN set -eux \
+ && rpm -i /tmp/tini.rpm \
+ && rm /tmp/tini.rpm \
+ && tini --version
+
+## Hadoop
+
+USER hadoop:hadoop
+
+COPY --from=build /hadoop-${HADOOP_VER} /opt/hadoop
+
+## Setup environment
+
+ENV HADOOP_HOME /opt/hadoop
+ENV PATH $PATH:$HADOOP_HOME/bin:$HADOOP_HOME/sbin
+
+## SHOULD MOVE ELSEWHERE!
+
+ENV HADOOP_COMMON_HOME $HADOOP_HOME
+ENV HADOOP_HDFS_HOME $HADOOP_HOME
+ENV HADOOP_MAPRED_HOME $HADOOP_HOME
+ENV HADOOP_YARN_HOME $HADOOP_HOME
+ENV HADOOP_CONF_DIR $HADOOP_HOME/etc/hadoop
+ENV YARN_CONF_DIR $HADOOP_HOME/etc/hadoop
+
+## Hadoop settings
+
+ADD core-site.xml hdfs-site.xml /opt/hadoop/etc/hadoop/
+
+## SSH setup
+
+RUN echo Configure SSH for user hadoop... \
+ && ssh-keygen -t rsa -P '' -f ${HOME}/.ssh/id_rsa              \
+ && cat ${HOME}/.ssh/id_rsa.pub >> ${HOME}/.ssh/authorized_keys \
+ && chmod 0600 ${HOME}/.ssh/authorized_keys                     \ 
+ && echo localhost $(cat /etc/ssh/ssh_host_rsa_key.pub) >> ${HOME}/.ssh/known_hosts \
+ && echo 0.0.0.0   $(cat /etc/ssh/ssh_host_rsa_key.pub) >> ${HOME}/.ssh/known_hosts \
+ && echo Prepare ${HOME}/.bashrc \
+ && echo export PATH=${PATH}:/opt/ssh/bin >> ${HOME}/.bashrc \
+ && echo export JAVA_HOME=${JAVA_HOME} >> ${HOME}/.bashrc \
+ && echo . /opt/hadoop/etc/hadoop/hadoop-env.sh >> ${HOME}/.bashrc
+
+EXPOSE 9870
+
+ENTRYPOINT [ "tini", "--" ]
+
+WORKDIR /opt/hadoop
+CMD ["/bin/bash"]
