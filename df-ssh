@@ -69,5 +69,4 @@ RUN echo Configure ssh for root... \
  && chmod 0600 ${HOME}/.ssh/authorized_keys \ 
  && echo localhost $(cat /etc/ssh/ssh_host_rsa_key.pub) >> ${HOME}/.ssh/known_hosts \
  && echo 0.0.0.0 $(cat /etc/ssh/ssh_host_rsa_key.pub) >> ${HOME}/.ssh/known_hosts \
- && echo "export PATH=$PATH:/opt/ssh/bin" >> ${HOME}/.bashrc \
- && echo '[ ! -f /var/run/sshd.pid ] && /opt/ssh/sbin/sshd > /dev/null' >> ${HOME}/.bashrc
+ && echo "export PATH=$PATH:/opt/ssh/bin" >> ${HOME}/.bashrc
