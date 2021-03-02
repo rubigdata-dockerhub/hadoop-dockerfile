@@ -41,6 +41,7 @@ RUN $microdnf update \
       gzip \
       hostname \
       man \
+      nano \
       nc \
       ncurses \
       passwd \
