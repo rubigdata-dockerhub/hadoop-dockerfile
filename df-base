@@ -41,6 +41,7 @@ RUN $microdnf update \
       hostname \
       man \
       nc \
+      ncurses \
       passwd \
       procps \
       shadow-utils \
