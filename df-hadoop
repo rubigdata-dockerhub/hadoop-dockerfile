@@ -61,8 +61,10 @@ COPY --from=build /hadoop-${HADOOP_VER} /opt/hadoop
 ENV HADOOP_HOME /opt/hadoop
 ENV PATH $PATH:$HADOOP_HOME/bin:$HADOOP_HOME/sbin
 
-## SHOULD MOVE ELSEWHERE!
-
+## Environment
+# TODO: Check which ones are needed
+#       Check if these persist
+#
 ENV HADOOP_COMMON_HOME $HADOOP_HOME
 ENV HADOOP_HDFS_HOME $HADOOP_HOME
 ENV HADOOP_MAPRED_HOME $HADOOP_HOME
@@ -84,6 +86,7 @@ RUN echo Configure SSH for user hadoop... \
  && echo 0.0.0.0   $(cat /etc/ssh/ssh_host_rsa_key.pub) >> ${HOME}/.ssh/known_hosts \
  && echo Prepare ${HOME}/.bashrc \
  && echo export PATH=${PATH}:/opt/ssh/bin >> ${HOME}/.bashrc \
+ && echo '[ ! -f /var/run/sshd.pid ] && sudo /opt/ssh/sbin/sshd > /dev/null' >> ${HOME}/.bashrc \
  && echo export JAVA_HOME=${JAVA_HOME} >> ${HOME}/.bashrc \
  && echo . /opt/hadoop/etc/hadoop/hadoop-env.sh >> ${HOME}/.bashrc
 
