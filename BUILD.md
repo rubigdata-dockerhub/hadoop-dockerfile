@@ -33,7 +33,16 @@ You can take a test-drive using `docker run --rm -it test`.
 
 ### Hadoop
 
-At a second level, we install Hadoop using the `df-hadoop` [Dockerfile](df-hadoop).
+We would have installed Hadoop at the second level, wouldn't we _also_
+need `sshd` to run a pseudo-distributed cluster, and Red Hat UBI not
+providing an openssh-server package (yet?).
+
+So, we have created an image that includes `sshd` build from source,
+in a multi-stage build:
+
+    docker build -t "rubigdata/sshd" --format docker --no-cache -f df-ssh .
+
+We then install Hadoop on top of that, using the `df-hadoop` [Dockerfile](df-hadoop).
 
     docker build -t "rubigdata/hadoop" --format docker --no-cache -f df-hadoop .
 
