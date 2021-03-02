@@ -1,0 +1,71 @@
+FROM rubigdata/base AS build
+MAINTAINER Arjen P. de Vries <arjen@cs.ru.nl>
+
+# A two-stage Dockerfile to include sshd in ubi-minimal
+# Tnx: http://www.linuxfromscratch.org/blfs/view/svn/postlfs/openssh.html
+
+ENV SSH_VER="8.4p1"
+
+ENV SSH_UID=74
+ENV SSH_GID=74
+
+RUN echo Building sshd... \
+ && $microdnf install \
+      gcc \
+      make \
+      openssl-devel \
+ && install  -v -m700 -d /var/lib/sshd \
+ && chown    -v root:sys /var/lib/sshd \
+ && groupadd -g $SSH_GID sshd \
+ && useradd  -c 'sshd PrivSep' \
+             -d /var/lib/sshd  \
+             -g sshd           \
+             -s /bin/false     \
+             -u $SSH_UID sshd  \
+ && $wget https://ftp.nluug.nl/pub/OpenBSD/OpenSSH/portable/openssh-${SSH_VER}.tar.gz \
+ && tar -xf openssh-${SSH_VER}.tar.gz \
+ && cd openssh-${SSH_VER} \
+ && ./configure --prefix=/opt/ssh                 \
+                --sysconfdir=/etc/ssh             \
+                --with-md5-passwords              \
+                --with-privsep-path=/var/lib/sshd \
+ && make install \
+ && install -v -m755 contrib/ssh-copy-id /opt/ssh/bin \
+ && install -v -m644 contrib/ssh-copy-id.1 /usr/share/man/man1
+
+RUN echo Configure sshd... \
+ && echo "PasswordAuthentication no" >> /etc/ssh/sshd_config \
+ && echo "ChallengeResponseAuthentication no" >> /etc/ssh/sshd_config
+
+###
+###
+
+FROM rubigdata/base
+
+ENV SSH_UID=74
+ENV SSH_GID=74
+
+RUN echo Installing ssh... \
+ && install  -v -m700 -d /var/lib/sshd \
+ && chown    -v root:sys /var/lib/sshd \
+ && groupadd -g $SSH_GID sshd \
+ && useradd  -c 'sshd PrivSep' \
+             -d /var/lib/sshd  \
+             -g sshd           \
+             -s /bin/false     \
+             -u $SSH_UID sshd
+
+COPY --from=build /opt/ssh /opt/ssh
+COPY --from=build /etc/ssh /etc/ssh
+COPY --from=build /usr/share/man/man1/ssh-copy-id.1 /usr/share/man/man1/ssh-copy-id.1
+
+ENV PATH=$PATH:/opt/ssh/bin
+
+RUN echo Configure ssh for root... \
+ && echo "Welcome @ RUBigData 2021 Docker (SSH)" > /etc/motd \
+ && ssh-keygen -t rsa -P '' -f ${HOME}/.ssh/id_rsa \
+ && cat ${HOME}/.ssh/id_rsa.pub >> ${HOME}/.ssh/authorized_keys \
+ && chmod 0600 ${HOME}/.ssh/authorized_keys \ 
+ && echo localhost $(cat /etc/ssh/ssh_host_rsa_key.pub) >> ${HOME}/.ssh/known_hosts \
+ && echo 0.0.0.0 $(cat /etc/ssh/ssh_host_rsa_key.pub) >> ${HOME}/.ssh/known_hosts
+
