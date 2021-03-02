@@ -50,17 +50,25 @@ We then install Hadoop on top of that, using the `df-hadoop` [Dockerfile](df-had
 
 Third level installs `spark`:
 
+__TODO__
 
 ### Zeppelin
 
 Fourth level installs `zeppelin`:
 
+__TODO__
 
 
-### Final
+### Debugging
 
+Copy-paste the part of the `Dockerfile` to be tested into `testing-dockerfile`.
+Use `testing-dockerfile` as follows:
 
+    docker build -f testing-dockerfile -t testje .
+    docker run --rm -it testje
 
+Once you have success:
 
+    docker rmi testje
 
 [msb]: https://docs.docker.com/develop/develop-images/multistage-build/ "Multistage-build documentation"

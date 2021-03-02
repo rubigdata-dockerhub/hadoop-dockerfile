@@ -1,17 +1,27 @@
 # Zeppelin plus Hadoop Dockerfile
 
-Dockerfile that extends Apache Zeppelin with the necessary packages for running Hadoop in assignment 2 of the [RU Big Data course](https://rubigdata.github.io).
+Dockerfile(s) for the assignments of the [RU Big Data course](https://rubigdata.github.io).
 
 More details in [`zeppelin.md`](zeppelin.md) in this directory.
 
-## Debugging
+## Using Hadoop
 
-Copy-paste the part of the `Dockerfile` to be tested into `testing-dockerfile`.
-Use `testing-dockerfile` as follows:
+Create a container with port 9870 exposed:
 
-    docker build -f testing-dockerfile -t testje .
-    docker run --rm -it testje
+    docker create --name hadoop -p 9870:9870 -it rubigdata/hadoop
 
-Once you have success:
+Start the container and attach a terminal:
 
-    docker rmi testje
+    docker start hadoop
+    docker attach hadoop
+
+Open [localhost:9870](http://localhost:9870) for the web interface of the NameNode.
+
+Done:
+
+    docker stop hadoop
+
+## Building the images
+
+See [BUILD.md](BUILD.md).
+
