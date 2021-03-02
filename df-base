@@ -36,6 +36,7 @@ RUN $microdnf update \
  && $microdnf install -y \
       curl \
       diffutils \
+      findutils \
       glibc-langpack-en \
       gzip \
       hostname \
