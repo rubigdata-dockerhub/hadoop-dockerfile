@@ -28,7 +28,7 @@ ENV APACHE_MIRROR="https://ftp.nluug.nl/internet/apache/"
 ## Environment variables to act like "aliases"
 #
 ENV microdnf="microdnf --disableplugin=subscription-manager"
-ENV wget="wget --quiet --show-progress --progress=bar"
+ENV wget="wget --quiet --show-progress --progress=bar:force"
 
 USER root:root
 
