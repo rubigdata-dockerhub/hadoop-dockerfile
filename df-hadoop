@@ -12,7 +12,7 @@ ENV wget="wget --quiet --show-progress --progress=bar:force"
 RUN echo "Building Hadoop" \
  && $wget ${APACHE_MIRROR}/hadoop/common/hadoop-${HADOOP_VER}/hadoop-${HADOOP_VER}.tar.gz \
  && tar -xzf hadoop-${HADOOP_VER}.tar.gz \
- && cd /hadoop-${HADOOP_VER}/share/course \ 
+ && cd /hadoop-${HADOOP_VER} \ 
  && mkdir -p share/course \ 
  && echo "export JAVA_HOME=${JAVA_HOME}" >> etc/hadoop/hadoop-env.sh \
  && echo "export HADOOP_CLASSPATH=${JAVA_HOME}/lib/tools.jar" >> etc/hadoop/hadoop-env.sh \
