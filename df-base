@@ -68,12 +68,11 @@ RUN $microdnf install \
 
 LABEL JAVA_VERSION=1.8
 
-ENV JAVA_HOME=/etc/alternatives/jre
+ENV JAVA_HOME=/etc/alternatives/java_sdk_1.8.0
 ENV JAVA_OPTS="-XX:+UnlockExperimentalVMOptions"\
 "-XX:+UseCGroupMemoryLimitForHeap"\
 "-XX:MaxRAMFraction=2"\
 "-XshowSettings:vm"
-
 ENV PATH=$PATH:$JAVA_HOME/bin
 
 ## Python
