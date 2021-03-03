@@ -13,6 +13,7 @@ RUN echo "Building Hadoop" \
  && $wget ${APACHE_MIRROR}/hadoop/common/hadoop-${HADOOP_VER}/hadoop-${HADOOP_VER}.tar.gz \
  && tar -xzf hadoop-${HADOOP_VER}.tar.gz \
  && echo "export JAVA_HOME=${JAVA_HOME}" >> /hadoop-${HADOOP_VER}/etc/hadoop/hadoop-env.sh \
+ && echo "export HADOOP_CLASSPATH=${JAVA_HOME}/lib/tools.jar" >> /hadoop-${HADOOP_VER}/etc/hadoop/hadoop-env.sh \
  && echo "export HADOOP_HOME=/opt/hadoop" >> /hadoop-${HADOOP_VER}/etc/hadoop/hadoop-env.sh \
  && echo "export HADOOP_CONF_DIR=/opt/hadoop/etc/hadoop" >> /hadoop-${HADOOP_VER}/etc/hadoop/hadoop-env.sh \
  && bash -c 'for ev in HDFS_NAMENODE HDFS_DATANODE HDFS_SECONDARYNAMENODE YARN_RESOURCEMANAGER YARN_NODEMANAGER ; \
