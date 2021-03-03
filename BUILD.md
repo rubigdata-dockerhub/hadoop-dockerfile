@@ -40,7 +40,7 @@ providing an openssh-server package (yet?).
 So, we have created an image that includes `sshd` build from source,
 in a multi-stage build:
 
-    docker build -t "rubigdata/sshd" --format docker --no-cache -f df-ssh .
+    docker build -t "rubigdata/sshd" --format docker --no-cache -f df-sshd .
 
 We then install Hadoop on top of that, using the `df-hadoop` [Dockerfile](df-hadoop).
 
