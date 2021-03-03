@@ -12,14 +12,26 @@ ENV wget="wget --quiet --show-progress --progress=bar:force"
 RUN echo "Building Hadoop" \
  && $wget ${APACHE_MIRROR}/hadoop/common/hadoop-${HADOOP_VER}/hadoop-${HADOOP_VER}.tar.gz \
  && tar -xzf hadoop-${HADOOP_VER}.tar.gz \
- && echo "export JAVA_HOME=${JAVA_HOME}" >> /hadoop-${HADOOP_VER}/etc/hadoop/hadoop-env.sh \
- && echo "export HADOOP_CLASSPATH=${JAVA_HOME}/lib/tools.jar" >> /hadoop-${HADOOP_VER}/etc/hadoop/hadoop-env.sh \
- && echo "export HADOOP_HOME=/opt/hadoop" >> /hadoop-${HADOOP_VER}/etc/hadoop/hadoop-env.sh \
- && echo "export HADOOP_CONF_DIR=/opt/hadoop/etc/hadoop" >> /hadoop-${HADOOP_VER}/etc/hadoop/hadoop-env.sh \
+ && cd /hadoop-${HADOOP_VER}/share/course \ 
+ && mkdir -p share/course \ 
+ && echo "export JAVA_HOME=${JAVA_HOME}" >> etc/hadoop/hadoop-env.sh \
+ && echo "export HADOOP_CLASSPATH=${JAVA_HOME}/lib/tools.jar" >> etc/hadoop/hadoop-env.sh \
+ && echo "export HADOOP_HOME=/opt/hadoop" >> etc/hadoop/hadoop-env.sh \
+ && echo "export HADOOP_CONF_DIR=/opt/hadoop/etc/hadoop" >> etc/hadoop/hadoop-env.sh \
  && bash -c 'for ev in HDFS_NAMENODE HDFS_DATANODE HDFS_SECONDARYNAMENODE YARN_RESOURCEMANAGER YARN_NODEMANAGER ; \
    do \
      echo export ${ev}_USER=hadoop ; \
-   done >> /hadoop-${HADOOP_VER}/etc/hadoop/hadoop-env.sh'
+   done >> etc/hadoop/hadoop-env.sh'
+
+## Hadoop settings
+
+COPY core-site.xml \
+     hdfs-site.xml \
+     mapred-site.xml \
+     yarn-site.xml \
+     /hadoop-${HADOOP_VER}/etc/hadoop/
+
+COPY WordCount.java /hadoop-${HADOOP_VER}/share/course/
 
 #########################################################
 #########################################################
@@ -71,14 +83,6 @@ ENV HADOOP_HDFS_HOME $HADOOP_HOME
 ENV HADOOP_MAPRED_HOME $HADOOP_HOME
 ENV HADOOP_YARN_HOME $HADOOP_HOME
 ENV HADOOP_CONF_DIR $HADOOP_HOME/etc/hadoop
-
-## Hadoop settings
-
-ADD core-site.xml \
-    hdfs-site.xml \
-    mapred-site.xml \
-    yarn-site.xml \
-    /opt/hadoop/etc/hadoop/
 
 ## SSH setup
 
