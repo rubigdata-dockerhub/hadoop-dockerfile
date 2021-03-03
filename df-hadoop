@@ -25,7 +25,7 @@ RUN echo "Building Hadoop" \
 
 ## Stage 2
 #
-FROM rubigdata/ssh
+FROM rubigdata/sshd
 
 USER root:root
 
