@@ -5,7 +5,8 @@ MAINTAINER Arjen P. de Vries <arjen@acm.org>
 
 USER root:root
 
-ENV wget="wget --quiet --show-progress --progress=bar:force"
+# Versions to install:
+ENV HADOOP_VER="3.2.2"
 
 ## Hadoop
 #
@@ -65,7 +66,7 @@ RUN set -eux \
 
 USER hadoop:hadoop
 
-COPY --from=build /hadoop-${HADOOP_VER} /opt/hadoop
+COPY --chown=hadoop:hadoop --from=build /hadoop-${HADOOP_VER} /opt/hadoop
 
 ## Hadoop settings
 
