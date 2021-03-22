@@ -1,0 +1,37 @@
+diff --git hadoop-common-project/hadoop-common/src/main/bin/hadoop-functions.sh hadoop-common-project/hadoop-common/src/main/bin/hadoop-functions.sh
+index 71ba7fffc10..e291a9b8998 100755
+--- hadoop-common-project/hadoop-common/src/main/bin/hadoop-functions.sh
++++ hadoop-common-project/hadoop-common/src/main/bin/hadoop-functions.sh
+@@ -2364,6 +2364,10 @@ function hadoop_verify_user_perm
+   declare command=$2
+   declare uvar
+ 
++  if [[ ${command} =~ \. ]]; then
++    return 1
++  fi
++
+   uvar=$(hadoop_build_custom_subcmd_var "${program}" "${command}" USER)
+ 
+   if [[ -n ${!uvar} ]]; then
+@@ -2395,6 +2399,10 @@ function hadoop_need_reexec
+     return 1
+   fi
+ 
++  if [[ ${command} =~ \. ]]; then
++    return 1
++  fi
++
+   # if we have privilege, and the _USER is defined, and _USER is
+   # set to someone who isn't us, then yes, we should re-exec.
+   # otherwise no, don't re-exec and let the system deal with it.
+@@ -2431,6 +2439,10 @@ function hadoop_subcommand_opts
+     return 1
+   fi
+ 
++  if [[ ${command} =~ \. ]]; then
++    return 1
++  fi
++
+   # bash 4 and up have built-in ways to upper and lower
+   # case the contents of vars.  This is faster than
+   # calling tr.
