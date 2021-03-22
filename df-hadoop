@@ -33,6 +33,14 @@ COPY core-site.xml \
 
 COPY WordCount.java /hadoop-${HADOOP_VER}/share/course/
 
+## Patch Hadoop for bash 4.4
+#
+COPY HADOOP-16167.004.patch /tmp
+RUN echo "Bash patch HADOOP-16167.004" \
+ && microdnf install patch \
+ && cd /hadoop-${HADOOP_VER}/libexec \
+ && patch -i /tmp/HADOOP-16167.004.patch
+
 #########################################################
 #########################################################
 
