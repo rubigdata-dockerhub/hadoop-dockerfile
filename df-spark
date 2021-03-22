@@ -1,0 +1,43 @@
+FROM rubigdata/base AS build
+MAINTAINER Arjen P. de Vries <arjen@acm.org>
+
+ENV SPARK_VER="3.1.1"
+ENV SPARK_BIN_VER="3.1.1-bin-without-hadoop"
+ENV Z_VERSION="0.9.0"
+
+USER root:root
+
+ENV wget="wget --quiet --show-progress --progress=bar:force"
+
+RUN echo "$LOG_TAG setting up spark" && \
+  $wget ${APACHE_MIRROR}/spark/spark-${SPARK_VER}/spark-${SPARK_BIN_VER}.tgz && \
+  tar -xzf spark-${SPARK_BIN_VER}.tgz && \
+  rm spark-${SPARK_BIN_VER}.tgz
+
+#########################################################
+#########################################################
+
+## Stage 2
+#
+FROM rubigdata/hadoop
+
+USER hadoop:hadoop
+
+ENV SPARK_HOME="/opt/spark"  
+ENV PATH="$SPARK_HOME/bin:$PATH"
+
+COPY --from=build /spark-${SPARK_BIN_VER} /opt/spark
+
+RUN echo Prepare ${HOME}/.bashrc \
+ && echo export SPARK_DIST_CLASSPATH=$(hadoop classpath) >> ${HOME}/.bashrc
+
+EXPOSE 8080
+
+WORKDIR /opt/spark
+
+ENTRYPOINT [ "/usr/bin/tini", "--" ]
+CMD ["/bin/bash"]
+
+
+
+
