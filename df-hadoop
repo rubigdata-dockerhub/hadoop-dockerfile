@@ -69,14 +69,14 @@ COPY --from=build /hadoop-${HADOOP_VER} /opt/hadoop
 
 ## Hadoop settings
 
-COPY --chown hadoop:hadoop \
+COPY --chown=hadoop:hadoop \
   core-site.xml \
   hdfs-site.xml \
   mapred-site.xml \
   yarn-site.xml \
   /opt/hadoop/etc/hadoop/
 
-COPY --chown hadoop:hadoop \
+COPY --chown=hadoop:hadoop \
   WordCount.java /opt/hadoop/share/course/
 
 ## Setup environment
