@@ -52,8 +52,8 @@ USER root:root
 
 ## Add user hadoop
 #
-ENV HADOOP_GID=1001
-ENV HADOOP_UID=1001
+ENV HADOOP_GID=1000
+ENV HADOOP_UID=1000
 
 RUN echo "Setting up Hadoop user" \
  && groupadd -r -g ${HADOOP_GID} hadoop \
@@ -109,7 +109,7 @@ RUN echo Configure SSH for user hadoop... \
 EXPOSE 9870
 EXPOSE 8088
 
-ENTRYPOINT [ "tini", "--" ]
+ENTRYPOINT [ "/usr/bin/tini", "--" ]
 
 WORKDIR /opt/hadoop
 CMD ["/bin/bash"]
