@@ -79,9 +79,9 @@ EXPOSE 8080
 
 WORKDIR /
 ENTRYPOINT [ "/usr/bin/tini", "--" ]
-CMD ["/bin/bash"]
+#CMD ["/bin/bash"]
 
-#CMD ["/opt/zeppelin/bin/zeppelin.sh"]
+CMD ["/opt/zeppelin/bin/zeppelin.sh"]
 
 
 
