@@ -48,7 +48,10 @@ We then install Hadoop on top of that, using the `df-hadoop` [Dockerfile](df-had
 
 ### Spark
 
-Third level installs `spark`:
+Third level installs `spark` using the "hadoop provided" pre-compiled release,
+setting configuration info (e.g. `SPARK_DIST_CLASSPATH`) following the 
+[documentation](https://spark.apache.org/docs/latest/hadoop-provided.html).
+
 
 __TODO__
 

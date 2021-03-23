@@ -7,12 +7,15 @@ ENV Z_VERSION="0.9.0"
 
 USER root:root
 
-ENV wget="wget --quiet --show-progress --progress=bar:force"
-
-RUN echo "$LOG_TAG setting up spark" && \
+RUN echo "Download Spark binary" && \
   $wget ${APACHE_MIRROR}/spark/spark-${SPARK_VER}/spark-${SPARK_BIN_VER}.tgz && \
   tar -xzf spark-${SPARK_BIN_VER}.tgz && \
   rm spark-${SPARK_BIN_VER}.tgz
+
+RUN echo "Download Zeppelin binary" && \
+  $wget ${APACHE_MIRROR}/zeppelin/zeppelin-${Z_VERSION}/zeppelin-${Z_VERSION}-bin-netinst.tgz && \
+  tar -zxvf zeppelin-${Z_VERSION}-bin-netinst.tgz && \
+  rm zeppelin-${Z_VERSION}-bin-netinst.tgz
 
 #########################################################
 #########################################################
@@ -23,20 +26,61 @@ FROM rubigdata/hadoop
 
 USER hadoop:hadoop
 
+ENV SPARK_VER="3.1.1"
+ENV SPARK_BIN_VER="3.1.1-bin-without-hadoop"
+ENV Z_VERSION="0.9.0"
+
+## Spark
+
 ENV SPARK_HOME="/opt/spark"  
 ENV PATH="$SPARK_HOME/bin:$PATH"
 
-COPY --from=build /spark-${SPARK_BIN_VER} /opt/spark
+COPY --chown=hadoop:hadoop --from=build /spark-${SPARK_BIN_VER} ${SPARK_HOME}
 
 RUN echo Prepare ${HOME}/.bashrc \
+ && echo export PATH="$SPARK_HOME/bin:$PATH" >> ${HOME}/.bashrc \
  && echo export SPARK_DIST_CLASSPATH=$(hadoop classpath) >> ${HOME}/.bashrc
+
+## Zeppelin
+
+ENV ZEPPELIN_HOME=/opt/zeppelin
+
+COPY --chown=hadoop:hadoop --from=build /zeppelin-${Z_VERSION}-bin-netinst ${ZEPPELIN_HOME}
+
+## Not sure if all of the following is still necessary, it was created this way for the 2019 course...
+##
+##    mkdir -p ${Z_HOME}/logs ${Z_HOME}/run ${Z_HOME}/webapps && \
+##    # Allow process to edit /etc/passwd, to create a user entry for zeppelin
+##    chgrp root /etc/passwd && chmod ug+rw /etc/passwd && \
+##    # Give access to some specific folders
+##    chmod -R 775 "${Z_HOME}/logs" "${Z_HOME}/run" "${Z_HOME}/notebook" "${Z_HOME}/conf" && \
+##    # Allow process to create new folders (e.g. webapps)
+##    chmod 775 ${Z_HOME}
+
+## Config settings:
+## SPARK_HOME in zeppelin-env.sh
+## HADOOP_CONF_DIR in zeppelin-env.sh
+## Spark spark.master as yarn-client in Zeppelin Interpreters setting page
+## Set USE_HADOOP as true in zeppelin-env.sh
+
+COPY --chown=hadoop:hadoop \
+  zeppelin-env.sh \
+  log4j.properties \
+  ${ZEPPELIN_HOME}/conf/
+
+##  interpreter.json \
+
+## TODO: Expose Spark ports?
+## chown hadoop:hadoop /opt/spark ??
+## chown -R hadoop:hadoop /opt/zeppelin ??
 
 EXPOSE 8080
 
-WORKDIR /opt/spark
-
+WORKDIR /
 ENTRYPOINT [ "/usr/bin/tini", "--" ]
 CMD ["/bin/bash"]
+
+#CMD ["/opt/zeppelin/bin/zeppelin.sh"]
 
 
 
