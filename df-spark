@@ -69,19 +69,13 @@ COPY --chown=hadoop:hadoop \
   interpreter.json \
   ${ZEPPELIN_HOME}/conf/
 
-##  interpreter.json \
-
-## TODO: Expose Spark ports?
-## chown hadoop:hadoop /opt/spark ??
-## chown -R hadoop:hadoop /opt/zeppelin ??
-
+EXPOSE 4040
 EXPOSE 8080
+EXPOSE 9001
 
 WORKDIR /
 ENTRYPOINT [ "/usr/bin/tini", "--" ]
-#CMD ["/bin/bash"]
-
-CMD ["/opt/zeppelin/bin/zeppelin.sh"]
+CMD ["/bin/bash", "-c", ". /opt/hadoop/.bashrc ; /opt/zeppelin/bin/zeppelin.sh"]
 
 
 
