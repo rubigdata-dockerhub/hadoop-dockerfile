@@ -65,6 +65,7 @@ COPY --chown=hadoop:hadoop --from=build /zeppelin-${Z_VERSION}-bin-netinst ${ZEP
 
 COPY --chown=hadoop:hadoop \
   zeppelin-env.sh \
+  zeppelin-site.xml \
   log4j.properties \
   interpreter.json \
   ${ZEPPELIN_HOME}/conf/
