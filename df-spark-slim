@@ -24,12 +24,18 @@ RUN echo "Download Zeppelin binary" && \
 #
 FROM rubigdata/base
 
-USER hadoop:hadoop
+## Add user hadoop
+#
+ENV HADOOP_GID=1000
+ENV HADOOP_UID=1000
 
-ENV SPARK_VER="3.1.1"
-ENV SPARK_BIN_VER="3.1.1-bin-without-hadoop"
-ENV Z_VERSION="0.9.0"
-
+RUN echo "Setting up Hadoop user" \
+ && groupadd -r -g ${HADOOP_GID} hadoop \
+ && useradd -r -m -u ${HADOOP_UID} -g ${HADOOP_GID} -d /opt/hadoop hadoop \
+ && echo $PASS | passwd --stdin hadoop \
+ && usermod -aG wheel hadoop \
+ && echo "%hadoop ALL = NOPASSWD: /opt/ssh/sbin/sshd" > /etc/sudoers.d/hadoop
+ 
 ## Tini
 #
 COPY --from=rubigdata/tini:latest /tmp/tini.rpm /tmp
@@ -38,6 +44,12 @@ RUN set -eux \
  && rpm -i /tmp/tini.rpm \
  && rm /tmp/tini.rpm \
  && tini --version
+
+USER hadoop:hadoop
+
+ENV SPARK_VER="3.1.1"
+ENV SPARK_BIN_VER="3.1.1-bin-without-hadoop"
+ENV Z_VERSION="0.9.0"
 
 ## Spark
 
