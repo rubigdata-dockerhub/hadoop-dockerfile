@@ -48,7 +48,7 @@ RUN set -eux \
 USER hadoop:hadoop
 
 ENV SPARK_VER="3.1.1"
-ENV SPARK_BIN_VER="3.1.1-bin-without-hadoop"
+ENV SPARK_BIN_VER="3.1.1-bin-hadoop3.2"
 ENV Z_VERSION="0.9.0"
 
 ## Spark
@@ -59,8 +59,7 @@ ENV PATH="$SPARK_HOME/bin:$PATH"
 COPY --chown=hadoop:hadoop --from=build /spark-${SPARK_BIN_VER} ${SPARK_HOME}
 
 RUN echo Prepare ${HOME}/.bashrc \
- && echo export PATH="$SPARK_HOME/bin:$PATH" >> ${HOME}/.bashrc \
- && echo export SPARK_DIST_CLASSPATH=$(hadoop classpath) >> ${HOME}/.bashrc
+ && echo export PATH="$SPARK_HOME/bin:$PATH" >> ${HOME}/.bashrc
 
 ## Zeppelin
 
