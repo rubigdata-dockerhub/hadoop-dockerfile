@@ -1,0 +1,20 @@
+FROM rubigdata/spark-slim
+MAINTAINER Arjen P. de Vries <arjen@acm.org>
+
+USER root:root
+
+## SBT
+
+RUN echo Prepare SBT \
+ && $wget -O /etc/yum.repos.d/sbt-rpm.repo https://www.scala-sbt.org/sbt-rpm.repo \
+ && $microdnf install sbt
+
+USER hadoop:hadoop
+
+## Note: the use of ADD on a local tar archive unpacks it automatically
+
+ADD --chown=hadoop:hadoop rubigdata.tgz /opt/hadoop/
+
+## Inherit CMD etc from spark-slim, but use different working directory:
+
+WORKDIR /opt/hadoop/rubigdata
