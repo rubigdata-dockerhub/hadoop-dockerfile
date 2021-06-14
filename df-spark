@@ -78,6 +78,3 @@ WORKDIR /
 ENTRYPOINT [ "/usr/bin/tini", "--" ]
 CMD ["/bin/bash", "-c", ". /opt/hadoop/.bashrc ; /opt/zeppelin/bin/zeppelin.sh"]
 
-
-
-
