@@ -3,11 +3,20 @@ MAINTAINER Arjen P. de Vries <arjen@acm.org>
 
 USER root:root
 
-## SBT
+## Ideally I'd overwrite /etc/hosts but doesn't seem to work
+## Need indirection in startup script to achieve this
+COPY \
+  add-to-hosts.sh \
+  hosts \
+  /root
 
+## SBT & add-to-hosts-sh
 RUN echo Prepare SBT \
  && $wget -O /etc/yum.repos.d/sbt-rpm.repo https://www.scala-sbt.org/sbt-rpm.repo \
- && $microdnf install sbt
+ && $microdnf install sbt \
+ && echo "Add to hosts" file setup \
+ && chmod 755 /root/add-to-hosts.sh \
+ && echo "%hadoop ALL = NOPASSWD: /root/add-to-hosts.sh" >> /etc/sudoers.d/hadoop
 
 USER hadoop:hadoop
 
@@ -17,6 +26,24 @@ ADD --chown=hadoop:hadoop rubigdata.tgz /opt/hadoop/
 
 ## TODO: copy files from redbad-setup
 
+COPY --chown=hadoop:hadoop \
+  hadoop-conf/core-site.xml \
+  hadoop-conf/hdfs-site.xml \
+  hadoop-conf/mapred-site.xml \
+  hadoop-conf/yarn-site.xml \
+  hadoop-conf/capacity-scheduler.xml \
+  hadoop-conf/workers \
+  $HADOOP_HOME/etc/hadoop/
+
+COPY --chown=hadoop:hadoop \
+  spark-conf/spark-defaults.conf \
+  spark-conf/spark-env.sh \
+  spark-conf/workers \
+  $SPARK_HOME/conf
+
 ## Inherit CMD etc from spark, but use different working directory:
 
 WORKDIR /opt/hadoop/rubigdata
+
+ENTRYPOINT [ "/usr/bin/tini", "--" ]
+CMD ["/bin/bash", "-c", "sudo /root/add-to-hosts.sh ; bash"]
