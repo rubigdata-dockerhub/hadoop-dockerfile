@@ -45,4 +45,8 @@
     <name>mapreduce.jobhistory.webapp.address</name>
     <value>rbdata01.cs.ru.nl:19888</value>
   </property>
+  <property>
+    <name>yarn.app.mapreduce.am.staging-dir</name>
+    <value>/user</value>
+  </property>
 </configuration>
