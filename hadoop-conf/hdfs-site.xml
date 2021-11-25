@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License. See accompanying LICENSE file.
+-->
+<!-- REDBAD Hadoop Configuration 2021 -->
+<!--
+  Anticipating research cluster, the setup already hints at two nameservices.
+  HDFS nameservice frisia cannot run on the same nodes as gelre, so will be added
+  this fall. The idea for the setup remains the same, but now we allocate disks
+  that will move over to frisia eventually to gelre instead.
+-->
+<configuration>
+  <property>
+    <name>dfs.permissions.superusergroup</name>
+    <value>hadoop</value>
+  </property>
+  <property>
+    <name>dfs.nameservices</name>
+    <value>gelre</value>
+    <!--<value>gelre,frisia</value>-->
+  </property>
+  <property>
+    <name>dfs.ha.namenodes.gelre</name>
+    <value>nn1,nn2</value>
+  </property>
+  <!--
+      <property>
+      <name>dfs.ha.namenodes.frisia</name>
+      <value>nn1,nn2</value>
+      </property>
+  -->
+  <property>
+    <name>dfs.namenode.rpc-address.gelre.nn1</name>
+    <value>redbad01.cs.ru.nl:8020</value>
+  </property>
+  <property>
+    <name>dfs.namenode.rpc-address.gelre.nn2</name>
+    <value>redbad02.cs.ru.nl:8020</value>
+  </property>
+  <!--
+      <property>
+      <name>dfs.namenode.rpc-address.frisia.nn1</name>
+      <value>redbad03.cs.ru.nl:8020</value>
+      </property>
+      <property>
+      <name>dfs.namenode.rpc-address.frisia.nn2</name>
+      <value>redbad04.cs.ru.nl:8020</value>
+      </property>
+  -->
+  <property>
+    <name>dfs.namenode.http-address.gelre.nn1</name>
+    <value>redbad01.cs.ru.nl:9870</value>
+  </property>
+  <property>
+    <name>dfs.namenode.http-address.gelre.nn2</name>
+    <value>redbad02.cs.ru.nl:9870</value>
+  </property>
+  <!--
+      <property>
+      <name>dfs.namenode.http-address.frisia.nn1</name>
+      <value>redbad03.cs.ru.nl:9870</value>
+      </property>
+      <property>
+      <name>dfs.namenode.http-address.frisia.nn2</name>
+      <value>redbad04.cs.ru.nl:9870</value>
+      </property>
+  -->
+  <!-- Maybe misunderstood needing this twice: -->
+  <property>
+    <name>dfs.namenode.shared.edits.dir.gelre</name>
+    <value>qjournal://redbad01.cs.ru.nl:8485;redbad02.cs.ru.nl:8485;rbdata01.cs.ru.nl:8485/gelre</value>
+  </property>
+  <!--
+      <property>
+      <name>dfs.namenode.shared.edits.dir.frisia</name>
+      <value>qjournal://redbad01.cs.ru.nl:8485;redbad02.cs.ru.nl:8485;rbdata01.cs.ru.nl:8485/frisia</value>
+      </property>
+  -->
+  <property>
+    <name>dfs.client.failover.proxy.provider.gelre</name>
+    <value>org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider</value>
+  </property>
+  <!--
+      <property>
+      <name>dfs.client.failover.proxy.provider.frisia</name>
+      <value>org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider</value>
+      </property>
+  -->
+  <property>
+    <name>dfs.ha.fencing.methods</name>
+    <value>sshfence</value>
+  </property>
+  <!-- tested with "sudo -u hdfs ssh hdfs@rbdata09 echo 1" -->
+  <property>
+    <name>dfs.ha.fencing.ssh.private-key-files</name>
+    <value>/opt/hadoop/.ssh/id_rsa_redbad-nodes</value>
+  </property>
+  <!-- Suggested to be must-have to escape failing ssh 
+       https://www.packtpub.com/books/content/setting-namenode-ha -->
+  <property>
+    <name>dfs.ha.fencing.methods</name>
+    <value>shell(/bin/true)</value>
+  </property>
+  <property>
+    <name>dfs.datanode.data.dir</name>
+    <value>file:///var/storage/data1/dfs/gelre/dn,file:///var/storage/data2/dfs/gelre/dn,file:///var/storage/data3/dfs/gelre/dn,file:///var/storage/data4/dfs/gelre/dn,file:///var/storage/data5/dfs/gelre/dn,file:///var/storage/data6/dfs/gelre/dn</value>
+  </property>
+  <property>
+    <name>dfs.namenode.name.dir</name>
+    <value>file:///var/storage/data1/dfs/gelre/nn,file:///var/storage/data2/dfs/gelre/nn</value>
+  </property>
+  <property>
+    <name>dfs.replication</name>
+    <value>3</value>
+  </property>
+  <!-- For commoncrawl, anonymous s3 access -->
+  <property>
+    <name>fs.s3a.aws.credentials.provider</name>
+    <value>org.apache.hadoop.fs.s3a.AnonymousAWSCredentialsProvider</value>
+  </property>
+</configuration>
