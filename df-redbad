@@ -8,7 +8,7 @@ USER root:root
 COPY \
   add-to-hosts.sh \
   hosts \
-  /root
+  /root/
 
 ## SBT & add-to-hosts-sh
 RUN echo Prepare SBT \
@@ -39,7 +39,7 @@ COPY --chown=hadoop:hadoop \
   spark-conf/spark-defaults.conf \
   spark-conf/spark-env.sh \
   spark-conf/workers \
-  $SPARK_HOME/conf
+  $SPARK_HOME/conf/
 
 ## Inherit CMD etc from spark, but use different working directory:
 

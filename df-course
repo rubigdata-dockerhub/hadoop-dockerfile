@@ -15,6 +15,10 @@ USER hadoop:hadoop
 
 ADD --chown=hadoop:hadoop rubigdata.tgz /opt/hadoop/
 
-## Inherit CMD etc from spark-slim, but use different working directory:
+COPY stream.py /opt/hadoop/rubigdata/
+
+## Update CMD to start the stream on startup
 
 WORKDIR /opt/hadoop/rubigdata
+
+CMD ["/bin/bash", "-c", ". /opt/hadoop/.bashrc ; (python3 stream.py &) ; /opt/zeppelin/bin/zeppelin.sh"]
