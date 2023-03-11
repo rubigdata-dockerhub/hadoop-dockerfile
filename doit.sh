@@ -9,3 +9,4 @@ docker build -t "rubigdata/spark-slim"  --format docker --no-cache -f df-spark-s
 tar czvfp rubigdata.tgz rubigdata
 docker build -t "rubigdata/course"  --format docker --no-cache -f df-course .
 docker build -t "rubigdata/redbad"  --format docker --no-cache -f df-redbad .
+
