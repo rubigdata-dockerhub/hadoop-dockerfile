@@ -12,9 +12,10 @@ LABEL description="An image used for assignments in the Radboud University Big D
 
 COPY licenses /licenses
 
+## Environment variable PASS should contain the (podman secret) root password
+
 ## Setup
 #
-ENV PASS="rubigdata2021"
 
 # Mirror site to use for apache packages:
 ENV APACHE_MIRROR="https://ftp.nluug.nl/internet/apache/"

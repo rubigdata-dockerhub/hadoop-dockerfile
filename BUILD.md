@@ -6,6 +6,17 @@ We use a [multi-stage build][msb] setup to simplify debugging and
 reduce build time when we need to make changes to an intermediate
 level.
 
+### Password
+
+We want to enable users of the containers to become root so they can
+install new software. This uses a `secret` initialized as follows:
+
+    echo mypassword | podman secret create rubigdatapass -
+
+The password is provided to `podman` using the `--secret` flag as follows:
+
+    --secret=rubigdatapass,type=env,target=PASS
+
 ### Base
 
 The `base` image takes care of base utilities and environment
