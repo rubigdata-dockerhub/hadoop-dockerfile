@@ -11,11 +11,11 @@ level.
 We want to enable users of the containers to become root so they can
 install new software. This uses a `secret` initialized as follows:
 
-    echo mypassword | podman secret create rubigdatapass -
+    echo mypassword > fpass
 
-The password is provided to `podman` using the `--secret` flag as follows:
+The password is provided to `podman build` using the `--secret` flag as follows:
 
-    --secret=rubigdatapass,type=env,target=PASS
+    --secret=id=rubigdatapass,src=fpass
 
 ### Base
 
