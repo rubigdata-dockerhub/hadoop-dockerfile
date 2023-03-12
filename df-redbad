@@ -1,4 +1,4 @@
-FROM rubigdata/spark
+FROM docker.io/rubigdata/spark:buildx-latest
 MAINTAINER Arjen P. de Vries <arjen@acm.org>
 
 USER root:root
@@ -45,5 +45,5 @@ COPY --chown=hadoop:hadoop \
 
 WORKDIR /opt/hadoop/rubigdata
 
-ENTRYPOINT [ "/usr/bin/tini", "--" ]
-CMD ["/bin/bash", "-c", "sudo /root/add-to-hosts.sh ; bash"]
+#ENTRYPOINT [ "/usr/bin/tini", "--" ]
+ENTRYPOINT ["/bin/bash", "-c", "sudo /root/add-to-hosts.sh ; bash"]
