@@ -12,8 +12,6 @@ LABEL description="An image used for assignments in the Radboud University Big D
 
 COPY licenses /licenses
 
-## Environment variable PASS should contain the (podman secret) root password
-
 ## Setup
 #
 
@@ -27,7 +25,8 @@ ENV wget="wget --quiet --show-progress --progress=bar:force"
 
 USER root:root
 
-RUN $microdnf update \
+RUN --mount=type=secret,id=rubigdatapass PASS=$(cat /run/secrets/rubigdatapass) \
+ && $microdnf update \
  && $microdnf install -y \
       curl \
       diffutils \
