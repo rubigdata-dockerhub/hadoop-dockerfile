@@ -1,4 +1,4 @@
-FROM rubigdata/base AS build
+FROM docker.io/rubigdata/base:buildx-latest AS build
 MAINTAINER Arjen P. de Vries <arjen@acm.org>
 
 ## Basic tools:
@@ -10,9 +10,10 @@ ENV HADOOP_VER="3.2.2"
 
 ## Hadoop
 #
+COPY dist/hadoop-${HADOOP_VER}.tar.gz /tmp
 RUN echo "Building Hadoop" \
- && $wget ${APACHE_MIRROR}/hadoop/common/hadoop-${HADOOP_VER}/hadoop-${HADOOP_VER}.tar.gz \
- && tar -xzf hadoop-${HADOOP_VER}.tar.gz \
+ && tar -xzf /tmp/hadoop-${HADOOP_VER}.tar.gz \
+ && rm /tmp/hadoop-${HADOOP_VER}.tar.gz \
  && cd /hadoop-${HADOOP_VER} \ 
  && mkdir -p share/course \ 
  && echo "export JAVA_HOME=${JAVA_HOME}" >> etc/hadoop/hadoop-env.sh \
@@ -37,7 +38,7 @@ RUN echo "Bash patch HADOOP-16167.004" \
 
 ## Stage 2
 #
-FROM rubigdata/sshd
+FROM docker.io/rubigdata/sshd:buildx-latest
 
 USER root:root
 
@@ -46,7 +47,8 @@ USER root:root
 ENV HADOOP_GID=1000
 ENV HADOOP_UID=1000
 
-RUN echo "Setting up Hadoop user" \
+RUN --mount=type=secret,id=rubigdatapass PASS=$(cat /run/secrets/rubigdatapass) \
+ && echo "Setting up Hadoop user" \
  && groupadd -r -g ${HADOOP_GID} hadoop \
  && useradd -r -m -u ${HADOOP_UID} -g ${HADOOP_GID} -d /opt/hadoop hadoop \
  && echo $PASS | passwd --stdin hadoop \
@@ -55,12 +57,12 @@ RUN echo "Setting up Hadoop user" \
  
 ## Tini
 #
-COPY --from=rubigdata/tini:latest /tmp/tini.rpm /tmp
+#COPY --from=docker.io/rubigdata/tini:buildx-latest /tmp/tini.rpm /tmp
 
-RUN set -eux \
- && rpm -i /tmp/tini.rpm \
- && rm /tmp/tini.rpm \
- && tini --version
+#RUN set -eux \
+# && rpm -i /tmp/tini.rpm \
+# && rm /tmp/tini.rpm \
+# && tini --version
 
 ## Hadoop
 
@@ -116,5 +118,6 @@ EXPOSE 8088
 
 WORKDIR /opt/hadoop
 
-ENTRYPOINT [ "/usr/bin/tini", "--" ]
-CMD ["/bin/bash"]
+# Use default entrypoint instead of older:
+#ENTRYPOINT [ "/usr/bin/tini", "--" ]
+#CMD ["/bin/bash"]
