@@ -24,4 +24,5 @@ RUN echo Modify .bash_profile to start stream.py upon startup \
 
 WORKDIR /opt/hadoop/rubigdata
 
-CMD ["/bin/bash", "-c", ". /opt/hadoop/.bash_profile ; /opt/zeppelin/bin/zeppelin.sh"]
+# Note: the exec is important to carry on the signals to Zeppelin
+ENTRYPOINT ["/bin/bash", "-c", ". /opt/hadoop/.bash_profile ; exec /opt/zeppelin/bin/zeppelin.sh"]

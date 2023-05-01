@@ -45,5 +45,5 @@ COPY --chown=hadoop:hadoop \
 
 WORKDIR /opt/hadoop/rubigdata
 
-#ENTRYPOINT [ "/usr/bin/tini", "--" ]
-ENTRYPOINT ["/bin/bash", "-c", "sudo /root/add-to-hosts.sh ; bash"]
+## Note: the exec is important to propagate the signals send by docker stop
+ENTRYPOINT ["/bin/bash", "-c", "sudo /root/add-to-hosts.sh ; exec bash"]
