@@ -17,8 +17,11 @@ ADD --chown=hadoop:hadoop rubigdata.tgz /opt/hadoop/
 
 COPY stream.py /opt/hadoop/rubigdata/
 
+RUN echo Modify .bash_profile to start stream.py upon startup \
+ && echo "python3 $HOME/rubigdata/stream.py &" >> /opt/hadoop/.bash_profile
+
 ## Update CMD to start the stream on startup
 
 WORKDIR /opt/hadoop/rubigdata
 
-CMD ["/bin/bash", "-c", ". /opt/hadoop/.bashrc ; (python3 stream.py &) ; /opt/zeppelin/bin/zeppelin.sh"]
+CMD ["/bin/bash", "-c", ". /opt/hadoop/.bash_profile ; /opt/zeppelin/bin/zeppelin.sh"]
