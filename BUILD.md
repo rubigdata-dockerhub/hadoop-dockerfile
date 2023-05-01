@@ -24,24 +24,6 @@ variables that we need.
 
 	docker build -t "rubigdata/base" --format docker --no-cache -f df-base .
 
-We then install `tini` in a second image that extends `rubigdata/base`:
-
-	docker build -t "rubigdata/tini" --format docker --no-cache -f df-tini .
-
-We use this `tini` image only in a multi-stage setup, by copying the
-installed `tini` version into the next level. To illustrate, consider
-the `df-shell` [Dockerfile](df-shell), that installs the `tini`
-prepared in the previous step over `base` and adds no more than a
-`bash` shell (using a `COPY --from rubigdata/base:latest` command):
-
-    docker build -t "test" --format docker --no-cache -f df-shell .
-	
-Metadata about the image:
-
-    docker inspect test | jq ".[0].Config.Labels"
-
-You can take a test-drive using `docker run --rm -it test`.
-
 ### Hadoop
 
 We would have installed Hadoop at the second level, wouldn't we _also_

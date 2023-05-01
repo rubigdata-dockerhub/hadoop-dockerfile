@@ -1,0 +1,24 @@
+FROM docker.io/rubigdata/base:buildx-latest
+MAINTAINER Arjen P. de Vries <arjen@acm.org>
+
+# Why use tini:
+# https://github.com/krallin/tini/issues/8#issuecomment-146135930
+
+# Install tini for signal processing and zombie killing
+ENV TINI_VERSION 0.19.0
+ENV TINI_SIGN_KEY 595E85A6B1B4779EA4DAAEC70B588DFF0527A9B7
+
+RUN set -eux \
+ && $wget -O /tmp/tini.rpm "https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini_${TINI_VERSION}.rpm" \
+ && $wget -O /tmp/tini.rpm.asc "https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini_${TINI_VERSION}.rpm.asc" \
+ && export GNUPGHOME="$(mktemp -d)" \
+ && gpg --batch --keyserver ha.pool.sks-keyservers.net --recv-keys "$TINI_SIGN_KEY" \
+ && gpg --batch --verify /tmp/tini.rpm.asc /tmp/tini.rpm \
+ && command -v gpgconf && gpgconf --kill all || : \
+ && rpm -i /tmp/tini.rpm \
+ && rm -r "$GNUPGHOME" /tmp/tini.rpm.asc \
+ && tini --version
+
+## Modified to not cleanup the rpm, because later images use it, see e.g. df-shell
+## Used to be:
+# && rm -r "$GNUPGHOME" /tmp/tini.rpm{,.asc} \
