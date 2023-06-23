@@ -1,2 +1,4 @@
 .idea/
 rubigdata.tgz
+.gitsecret/keys/random_seed
+!*.secret
