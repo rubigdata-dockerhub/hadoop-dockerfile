@@ -76,10 +76,10 @@ COPY --chown=hadoop:hadoop --from=build /hadoop-${HADOOP_VER} ${HADOOP_HOME}
 ## Hadoop settings
 
 COPY --chown=hadoop:hadoop \
-  core-site.xml \
-  hdfs-site.xml \
-  mapred-site.xml \
-  yarn-site.xml \
+  hadoop-conf/core-site.xml \
+  hadoop-conf/hdfs-site.xml \
+  hadoop-conf/mapred-site.xml \
+  hadoop-conf/yarn-site.xml \
   $HADOOP_HOME/etc/hadoop/
 
 COPY --chown=hadoop:hadoop \
