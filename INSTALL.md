@@ -13,4 +13,4 @@ Using submodule for [`redbad-setup`](https://github.com/rubigdata/redbad-setup).
     git commit -a
 		
     cd redbad-setup
-    git checkout
+    git submodule update --init --recursive
