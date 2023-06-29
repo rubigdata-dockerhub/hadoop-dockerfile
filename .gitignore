@@ -4,3 +4,4 @@ rubigdata.tgz
 !*.secret
 fpass
 doit.sh
+doit-quay.sh
