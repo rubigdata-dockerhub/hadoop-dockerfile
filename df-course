@@ -1,0 +1,28 @@
+FROM docker.io/rubigdata/spark-slim:buildx-latest
+MAINTAINER Arjen P. de Vries <arjen@acm.org>
+
+USER root:root
+
+## SBT
+
+RUN echo Prepare SBT \
+ && $wget -O /etc/yum.repos.d/sbt-rpm.repo https://www.scala-sbt.org/sbt-rpm.repo \
+ && $microdnf install sbt
+
+USER hadoop:hadoop
+
+## Note: the use of ADD on a local tar archive unpacks it automatically
+
+ADD --chown=hadoop:hadoop rubigdata.tgz /opt/hadoop/
+
+COPY stream.py /opt/hadoop/rubigdata/
+
+RUN echo Modify .bash_profile to start stream.py upon startup \
+ && echo "python3 $HOME/rubigdata/stream.py &" >> /opt/hadoop/.bash_profile
+
+## Update CMD to start the stream on startup
+
+WORKDIR /opt/hadoop/rubigdata
+
+# Note: the exec is important to carry on the signals to Zeppelin
+ENTRYPOINT ["/bin/bash", "-c", ". /opt/hadoop/.bash_profile ; exec /opt/zeppelin/bin/zeppelin.sh"]

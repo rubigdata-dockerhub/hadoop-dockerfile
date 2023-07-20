@@ -1,0 +1,4 @@
+[submodule "redbad-setup"]
+	path = redbad-setup
+	url = git@github.com:rubigdata/redbad-setup.git
+	branch = main

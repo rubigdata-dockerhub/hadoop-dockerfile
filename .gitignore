@@ -1,0 +1,7 @@
+.idea/
+rubigdata.tgz
+.gitsecret/keys/random_seed
+!*.secret
+fpass
+doit.sh
+doit-quay.sh

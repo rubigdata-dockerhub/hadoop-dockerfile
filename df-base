@@ -12,13 +12,11 @@ LABEL description="An image used for assignments in the Radboud University Big D
 
 COPY licenses /licenses
 
-## Environment variable PASS should contain the (podman secret) root password
-
 ## Setup
 #
 
 # Mirror site to use for apache packages:
-ENV APACHE_MIRROR="https://ftp.nluug.nl/internet/apache/"
+ENV APACHE_MIRROR="https://dlcdn.apache.org"
 
 ## Environment variables to act like "aliases"
 #
@@ -27,7 +25,8 @@ ENV wget="wget --quiet --show-progress --progress=bar:force"
 
 USER root:root
 
-RUN $microdnf update \
+RUN --mount=type=secret,id=rubigdatapass PASS=$(cat /run/secrets/rubigdatapass) \
+ && $microdnf update \
  && $microdnf install -y \
       curl \
       diffutils \
@@ -68,10 +67,6 @@ ENV PATH=$PATH:$JAVA_HOME/bin
 
 ## Python
 #
-# TODO: Assignment 5 stream.py uses numpy...
-#       Is that really necessary?!
-#
 RUN $microdnf install -y \
-      python38 \
-      python38-numpy 
+      python38
 

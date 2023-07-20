@@ -1,4 +1,4 @@
-FROM rubigdata/base
+FROM docker.io/rubigdata/base:buildx-latest
 MAINTAINER Arjen P. de Vries <arjen@acm.org>
 
 # Why use tini:

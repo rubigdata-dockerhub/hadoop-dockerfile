@@ -1,0 +1,25 @@
+ARG VERSION=latest
+FROM registry.access.redhat.com/ubi8/ubi-minimal:$VERSION AS base
+MAINTAINER Arjen P. de Vries <arjen@cs.ru.nl>
+ARG VERSION
+
+LABEL name="base"
+LABEL vendor="Radboud University"
+LABEL maintainer="Arjen P. de Vries <arjen@cs.ru.nl>"
+LABEL version=$VERSION
+LABEL summary="RU Big Data Course."
+LABEL description="An image used for assignments in the Radboud University Big Data course's Lab Sessions."
+
+COPY licenses /licenses
+
+## Environment variables to act like "aliases"
+#
+ENV microdnf="microdnf --disableplugin=subscription-manager"
+ENV wget="wget --quiet --show-progress --progress=bar:force"
+
+USER root:root
+
+RUN --mount=type=secret,id=rubigdatapass export PASS=$(cat /run/secrets/rubigdatapass) \
+  && echo password is ${PASS}
+
+ENV PASS=$PASS
