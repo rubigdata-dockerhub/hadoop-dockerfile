@@ -6,7 +6,7 @@ MAINTAINER Arjen P. de Vries <arjen@acm.org>
 USER root:root
 
 # Versions to install:
-ENV HADOOP_VER="3.2.2"
+ENV HADOOP_VER="3.4.1"
 
 ## Hadoop
 #
@@ -27,11 +27,11 @@ RUN echo "Building Hadoop" \
 
 ## Patch Hadoop for bash 4.4
 #
-COPY HADOOP-16167.004.patch /tmp
-RUN echo "Bash patch HADOOP-16167.004" \
- && $microdnf install patch \
- && cd /hadoop-${HADOOP_VER}/libexec \
- && patch -i /tmp/HADOOP-16167.004.patch
+# COPY HADOOP-16167.004.patch /tmp
+# RUN echo "Bash patch HADOOP-16167.004" \
+#  && $microdnf install patch \
+#  && cd /hadoop-${HADOOP_VER}/libexec \
+#  && patch -i /tmp/HADOOP-16167.004.patch
 
 #########################################################
 #########################################################
@@ -68,7 +68,7 @@ RUN --mount=type=secret,id=rubigdatapass PASS=$(cat /run/secrets/rubigdatapass) 
 
 USER hadoop:hadoop
 
-ENV HADOOP_VER="3.2.2"
+ENV HADOOP_VER="3.4.1"
 ENV HADOOP_HOME /opt/hadoop
 
 COPY --chown=hadoop:hadoop --from=build /hadoop-${HADOOP_VER} ${HADOOP_HOME}
