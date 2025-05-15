@@ -1,4 +1,4 @@
-FROM rubigdata/base AS build
+FROM docker.io/rubigdata/base:buildx-latest AS build
 MAINTAINER Arjen P. de Vries <arjen@acm.org>
 
 ## Basic tools:
@@ -6,13 +6,14 @@ MAINTAINER Arjen P. de Vries <arjen@acm.org>
 USER root:root
 
 # Versions to install:
-ENV HADOOP_VER="3.2.2"
+ENV HADOOP_VER="3.4.1"
 
 ## Hadoop
 #
+COPY dist/hadoop-${HADOOP_VER}.tar.gz /tmp
 RUN echo "Building Hadoop" \
- && $wget ${APACHE_MIRROR}/hadoop/common/hadoop-${HADOOP_VER}/hadoop-${HADOOP_VER}.tar.gz \
- && tar -xzf hadoop-${HADOOP_VER}.tar.gz \
+ && tar -xzf /tmp/hadoop-${HADOOP_VER}.tar.gz \
+ && rm /tmp/hadoop-${HADOOP_VER}.tar.gz \
  && cd /hadoop-${HADOOP_VER} \ 
  && mkdir -p share/course \ 
  && echo "export JAVA_HOME=${JAVA_HOME}" >> etc/hadoop/hadoop-env.sh \
@@ -26,18 +27,18 @@ RUN echo "Building Hadoop" \
 
 ## Patch Hadoop for bash 4.4
 #
-COPY HADOOP-16167.004.patch /tmp
-RUN echo "Bash patch HADOOP-16167.004" \
- && $microdnf install patch \
- && cd /hadoop-${HADOOP_VER}/libexec \
- && patch -i /tmp/HADOOP-16167.004.patch
+# COPY HADOOP-16167.004.patch /tmp
+# RUN echo "Bash patch HADOOP-16167.004" \
+#  && $microdnf install patch \
+#  && cd /hadoop-${HADOOP_VER}/libexec \
+#  && patch -i /tmp/HADOOP-16167.004.patch
 
 #########################################################
 #########################################################
 
 ## Stage 2
 #
-FROM rubigdata/sshd
+FROM docker.io/rubigdata/sshd:buildx-latest
 
 USER root:root
 
@@ -46,7 +47,8 @@ USER root:root
 ENV HADOOP_GID=1000
 ENV HADOOP_UID=1000
 
-RUN echo "Setting up Hadoop user" \
+RUN --mount=type=secret,id=rubigdatapass PASS=$(cat /run/secrets/rubigdatapass) \
+ && echo "Setting up Hadoop user" \
  && groupadd -r -g ${HADOOP_GID} hadoop \
  && useradd -r -m -u ${HADOOP_UID} -g ${HADOOP_GID} -d /opt/hadoop hadoop \
  && echo $PASS | passwd --stdin hadoop \
@@ -55,18 +57,18 @@ RUN echo "Setting up Hadoop user" \
  
 ## Tini
 #
-COPY --from=rubigdata/tini:latest /tmp/tini.rpm /tmp
+#COPY --from=docker.io/rubigdata/tini:buildx-latest /tmp/tini.rpm /tmp
 
-RUN set -eux \
- && rpm -i /tmp/tini.rpm \
- && rm /tmp/tini.rpm \
- && tini --version
+#RUN set -eux \
+# && rpm -i /tmp/tini.rpm \
+# && rm /tmp/tini.rpm \
+# && tini --version
 
 ## Hadoop
 
 USER hadoop:hadoop
 
-ENV HADOOP_VER="3.2.2"
+ENV HADOOP_VER="3.4.1"
 ENV HADOOP_HOME /opt/hadoop
 
 COPY --chown=hadoop:hadoop --from=build /hadoop-${HADOOP_VER} ${HADOOP_HOME}
@@ -74,10 +76,10 @@ COPY --chown=hadoop:hadoop --from=build /hadoop-${HADOOP_VER} ${HADOOP_HOME}
 ## Hadoop settings
 
 COPY --chown=hadoop:hadoop \
-  core-site.xml \
-  hdfs-site.xml \
-  mapred-site.xml \
-  yarn-site.xml \
+  hadoop-conf/core-site.xml \
+  hadoop-conf/hdfs-site.xml \
+  hadoop-conf/mapred-site.xml \
+  hadoop-conf/yarn-site.xml \
   $HADOOP_HOME/etc/hadoop/
 
 COPY --chown=hadoop:hadoop \
@@ -116,5 +118,6 @@ EXPOSE 8088
 
 WORKDIR /opt/hadoop
 
-ENTRYPOINT [ "/usr/bin/tini", "--" ]
-CMD ["/bin/bash"]
+# Use default entrypoint instead of older:
+#ENTRYPOINT [ "/usr/bin/tini", "--" ]
+#CMD ["/bin/bash"]

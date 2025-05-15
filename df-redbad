@@ -1,4 +1,4 @@
-FROM rubigdata/spark
+FROM docker.io/rubigdata/spark:buildx-latest
 MAINTAINER Arjen P. de Vries <arjen@acm.org>
 
 USER root:root
@@ -7,8 +7,8 @@ USER root:root
 ## Need indirection in startup script to achieve this
 COPY \
   add-to-hosts.sh \
-  hosts \
-  /root
+  redbad-setup/hosts \
+  /root/
 
 ## SBT & add-to-hosts-sh
 RUN echo Prepare SBT \
@@ -27,23 +27,26 @@ ADD --chown=hadoop:hadoop rubigdata.tgz /opt/hadoop/
 ## TODO: copy files from redbad-setup
 
 COPY --chown=hadoop:hadoop \
-  hadoop-conf/core-site.xml \
-  hadoop-conf/hdfs-site.xml \
-  hadoop-conf/mapred-site.xml \
-  hadoop-conf/yarn-site.xml \
-  hadoop-conf/capacity-scheduler.xml \
-  hadoop-conf/workers \
+  redbad-setup/hadoop-conf/core-site.xml \
+  redbad-setup/hadoop-conf/hdfs-site.xml \
+  redbad-setup/hadoop-conf/mapred-site.xml \
+  redbad-setup/hadoop-conf/yarn-site.xml \
+  redbad-setup/hadoop-conf/capacity-scheduler.xml \
+  redbad-setup/hadoop-conf/workers \
   $HADOOP_HOME/etc/hadoop/
 
 COPY --chown=hadoop:hadoop \
-  spark-conf/spark-defaults.conf \
-  spark-conf/spark-env.sh \
-  spark-conf/workers \
-  $SPARK_HOME/conf
+  redbad-setup/spark-conf/spark-defaults.conf \
+  redbad-setup/spark-conf/spark-env.sh \
+  redbad-setup/spark-conf/workers \
+  $SPARK_HOME/conf/
+
+RUN echo Update JAVA_HOME from cluster Spark env \
+ && echo export JAVA_HOME=/etc/alternatives/java_sdk_1.8.0 | tee -a /opt/spark/conf/spark-env.sh > /dev/null
 
 ## Inherit CMD etc from spark, but use different working directory:
 
 WORKDIR /opt/hadoop/rubigdata
 
-ENTRYPOINT [ "/usr/bin/tini", "--" ]
-CMD ["/bin/bash", "-c", "sudo /root/add-to-hosts.sh ; bash"]
+## Note: the exec is important to propagate the signals send by docker stop
+ENTRYPOINT ["/bin/bash", "-c", "sudo /root/add-to-hosts.sh ; exec bash"]

@@ -1,35 +1,36 @@
-FROM rubigdata/base AS build
+FROM docker.io/rubigdata/base:buildx-latest AS build
 MAINTAINER Arjen P. de Vries <arjen@acm.org>
 
-ENV SPARK_VER="3.1.1"
-ENV SPARK_BIN_VER="3.1.1-bin-hadoop3.2"
-ENV Z_VERSION="0.9.0"
+ENV SPARK_VER="3.5.5"
+ENV SPARK_BIN_VER="3.5.5-bin-hadoop3"
+ENV Z_VERSION="0.12.0"
 
 USER root:root
 
+COPY dist/spark-${SPARK_BIN_VER}.tgz /tmp
 RUN echo "Download Spark binary" && \
-  $wget ${APACHE_MIRROR}/spark/spark-${SPARK_VER}/spark-${SPARK_BIN_VER}.tgz && \
-  tar -xzf spark-${SPARK_BIN_VER}.tgz && \
-  rm spark-${SPARK_BIN_VER}.tgz
+  tar -xzf /tmp/spark-${SPARK_BIN_VER}.tgz && \
+  rm /tmp/spark-${SPARK_BIN_VER}.tgz
 
+COPY dist/zeppelin-${Z_VERSION}-bin-netinst.tgz /tmp
 RUN echo "Download Zeppelin binary" && \
-  $wget ${APACHE_MIRROR}/zeppelin/zeppelin-${Z_VERSION}/zeppelin-${Z_VERSION}-bin-netinst.tgz && \
-  tar -zxvf zeppelin-${Z_VERSION}-bin-netinst.tgz && \
-  rm zeppelin-${Z_VERSION}-bin-netinst.tgz
+  tar -zxf /tmp/zeppelin-${Z_VERSION}-bin-netinst.tgz && \
+  rm /tmp/zeppelin-${Z_VERSION}-bin-netinst.tgz
 
 #########################################################
 #########################################################
 
 ## Stage 2
 #
-FROM rubigdata/base
+FROM docker.io/rubigdata/base:buildx-latest
 
 ## Add user hadoop
 #
 ENV HADOOP_GID=1000
 ENV HADOOP_UID=1000
 
-RUN echo "Setting up Hadoop user" \
+RUN --mount=type=secret,id=rubigdatapass PASS=$(cat /run/secrets/rubigdatapass) \
+ && echo "Setting up Hadoop user" \
  && groupadd -r -g ${HADOOP_GID} hadoop \
  && useradd -r -m -u ${HADOOP_UID} -g ${HADOOP_GID} -d /opt/hadoop hadoop \
  && echo $PASS | passwd --stdin hadoop \
@@ -38,18 +39,18 @@ RUN echo "Setting up Hadoop user" \
  
 ## Tini
 #
-COPY --from=rubigdata/tini:latest /tmp/tini.rpm /tmp
-
-RUN set -eux \
- && rpm -i /tmp/tini.rpm \
- && rm /tmp/tini.rpm \
- && tini --version
+#COPY --from=docker.io/rubigdata/tini:buildx-latest /tmp/tini.rpm /tmp
+#
+#RUN set -eux \
+# && rpm -i /tmp/tini.rpm \
+# && rm /tmp/tini.rpm \
+# && tini --version
 
 USER hadoop:hadoop
 
-ENV SPARK_VER="3.1.1"
-ENV SPARK_BIN_VER="3.1.1-bin-hadoop3.2"
-ENV Z_VERSION="0.9.0"
+ENV SPARK_VER="3.5.5"
+ENV SPARK_BIN_VER="3.5.5-bin-hadoop3"
+ENV Z_VERSION="0.12.0"
 
 ## Spark
 
@@ -95,5 +96,5 @@ EXPOSE 8080
 EXPOSE 9001
 
 WORKDIR /
-ENTRYPOINT [ "/usr/bin/tini", "--" ]
-CMD ["/bin/bash", "-c", ". /opt/hadoop/.bashrc ; /opt/zeppelin/bin/zeppelin.sh"]
+#ENTRYPOINT [ "/usr/bin/tini", "--" ]
+ENTRYPOINT ["/bin/bash", "-c", ". /opt/hadoop/.bashrc ; /opt/zeppelin/bin/zeppelin.sh"]

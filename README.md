@@ -27,3 +27,9 @@ Done:
 
 See [BUILD.md](BUILD.md).
 
+## Git specifics
+
+We use `git-secrets` for passwords and credentials.
+
+We have used `git submodules` (tutorial [here](https://www.vogella.com/tutorials/GitSubmodules/article.html)) to
+ensure the configuration files of REDBAD stay in synch between the cluster and the docker images.

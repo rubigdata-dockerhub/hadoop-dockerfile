@@ -1,4 +1,4 @@
-FROM rubigdata/base AS build
+FROM docker.io/rubigdata/base:buildx-latest AS build
 MAINTAINER Arjen P. de Vries <arjen@cs.ru.nl>
 
 # A two-stage Dockerfile to include sshd in ubi-minimal
@@ -43,7 +43,7 @@ RUN echo Building sshd... \
 
 ## Stage 2
 #
-FROM rubigdata/base
+FROM docker.io/rubigdata/base:buildx-latest
 
 ENV SSH_UID=74
 ENV SSH_GID=74

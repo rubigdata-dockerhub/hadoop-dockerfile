@@ -1,18 +1,19 @@
 import math
 import multiprocessing as mp
-import numpy
 import random
 import socket
 import time
 
 
 def data_generator():
-    materials = ['Bronze', 'Iron', 'Steel', 'Black',
-                 'White', 'Mithril', 'Adamant', 'Rune', 'Dragon']
-    weapons = ['Dagger', 'Sword', 'Scimitar', 'Mace',
-               'Longsword', 'Hatchet', 'Battleaxe', 'Warhammer',
-               'Two-handed sword', 'Pickaxe', 'Spear', 'Hasta',
-               'Claws', 'Halberd', 'Defender']
+    #(material, website mean + distributor)
+    materials = [('Bronze', 1803-500), ('Iron', 2976+0), ('Steel', 1913+0), ('Black', 4585+1000),
+                 ('White', 3224+500), ('Mithril', 3631+1000), ('Adamant', 6569+0), ('Rune', 14553+0), ('Dragon', 70021+0)]
+
+    #(weapon, website factor)
+    weapons = [('Dagger', 0.3), ('Hatchet', 0.6), ('Mace', 0.5), ('Sword', 0.4), ('Scimitar', 0.9),
+               ('Spear', 0.9), ('Hasta', 0.5), ('Longsword', 0.9), ('Warhammer', 1.5), ('Battleaxe', 1.6),
+               ('Claw', 0.8), ('Two-handed sword', 1.8), ('Halberd', 2.3)]
     n_weapons = len(weapons)
 
     while True:
@@ -22,11 +23,12 @@ def data_generator():
         material = materials[mat_i]
         weapon = weapons[weap_i]
 
-        mean = (mat_i + 1) * 50000 * ((weap_i + n_weapons / 1.5) / n_weapons)
-        stdev = math.sqrt(mean)
-        price = numpy.random.normal(mean, stdev)
+        mean = material[1] * weapon[1]
+        stdev = math.sqrt(material[1])
 
-        yield material + ' ' + weapon + ' was sold for ' + str(int(price)) + 'gp\n'
+        price = random.gauss(mean, stdev)
+
+        yield material[0] + ' ' + weapon[0] + ' was sold for ' + str(int(price)) + 'gp\n'
 
 
 def serve(socket):

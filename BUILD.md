@@ -11,11 +11,11 @@ level.
 We want to enable users of the containers to become root so they can
 install new software. This uses a `secret` initialized as follows:
 
-    echo mypassword | podman secret create rubigdatapass -
+    echo mypassword > fpass
 
-The password is provided to `podman` using the `--secret` flag as follows:
+The password is provided to `podman build` using the `--secret` flag as follows:
 
-    --secret=rubigdatapass,type=env,target=PASS
+    --secret=id=rubigdatapass,src=fpass
 
 ### Base
 
@@ -23,24 +23,6 @@ The `base` image takes care of base utilities and environment
 variables that we need.
 
 	docker build -t "rubigdata/base" --format docker --no-cache -f df-base .
-
-We then install `tini` in a second image that extends `rubigdata/base`:
-
-	docker build -t "rubigdata/tini" --format docker --no-cache -f df-tini .
-
-We use this `tini` image only in a multi-stage setup, by copying the
-installed `tini` version into the next level. To illustrate, consider
-the `df-shell` [Dockerfile](df-shell), that installs the `tini`
-prepared in the previous step over `base` and adds no more than a
-`bash` shell (using a `COPY --from rubigdata/base:latest` command):
-
-    docker build -t "test" --format docker --no-cache -f df-shell .
-	
-Metadata about the image:
-
-    docker inspect test | jq ".[0].Config.Labels"
-
-You can take a test-drive using `docker run --rm -it test`.
 
 ### Hadoop
 
