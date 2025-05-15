@@ -28,6 +28,22 @@ Add course specific instructions:
 
 ## Zeppelin
 
+### Zeppelin 0.12.0
+
+Put the following files in the `dist` directory:
+
+    cd dist
+    wget https://dlcdn.apache.org/zeppelin/zeppelin-0.12.0/zeppelin-0.12.0-bin-netinst.tgz
+
+    # Verify correctness
+    wget https://downloads.apache.org/zeppelin/zeppelin-0.12.0/zeppelin-0.12.0-bin-netinst.tgz.asc
+    wget https://downloads.apache.org/zeppelin/KEYS
+    mv KEYS zeppelin-KEYS
+    gpg --import zeppelin-KEYS
+    gpg --verify zeppelin-0.12.0-bin-netinst.tgz.asc zeppelin-0.12.0-bin-netinst.tgz
+
+## Continued
+
 Create image:
 
     cd gh/hadoop-dockerfile-zeppelin/
