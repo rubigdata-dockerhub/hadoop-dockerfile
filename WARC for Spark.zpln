@@ -1,53 +1,60 @@
 ﻿{
   "paragraphs": [
     {
-      "text": "%md\n## WARC for Spark (Part I)\n\nIn Part I of the final project, this notebook will help you get started on developing code to analyze Web Archive (WARC) files in Spark.\n\nIn Part II, we will continue the assignment with the aim on large amounts of data on our provisioned AWS EMR cluster.",
+      "text": "%md\n# WARC for Spark\n\nWeb crawls (and their collection, a Web Archive) have standardized on the Web ARCive (WARC) format. The majority of CommonCrawl data that we work with in the final project is stored as WARC files. This notebook serves to help you get started on working with those WARC files using Apache Spark.",
       "user": "anonymous",
-      "dateUpdated": "2020-06-09T00:18:06+0000",
+      "dateUpdated": "2025-05-15T14:18:43+0000",
+      "progress": 0,
       "config": {
         "tableHide": false,
         "editorSetting": {
-          "language": "text",
-          "editOnDblClick": false,
+          "language": "markdown",
+          "editOnDblClick": true,
           "completionKey": "TAB",
-          "completionSupport": true
+          "completionSupport": false
         },
         "colWidth": 12,
-        "editorMode": "ace/mode/text",
+        "editorMode": "ace/mode/markdown",
         "fontSize": 9,
         "editorHide": true,
+        "runOnSelectionChange": true,
+        "title": false,
+        "checkEmpty": true,
         "results": {},
-        "enabled": false
+        "enabled": true
       },
       "settings": {
-        "params": {},
+        "params": {
+          "uname": "arjen"
+        },
         "forms": {}
       },
       "apps": [],
       "runtimeInfos": {},
       "progressUpdateIntervalMs": 500,
-      "jobName": "paragraph_1591659459512_1270469927",
-      "id": "paragraph_1588608407720_1753054952",
-      "dateCreated": "2020-06-08T23:37:39+0000",
-      "dateStarted": "2020-06-09T00:18:04+0000",
-      "dateFinished": "2020-06-09T00:18:04+0000",
+      "jobName": "paragraph_1747306833086_45593626",
+      "id": "paragraph_1592823024747_-824845732",
+      "dateCreated": "2025-05-15T11:00:33+0000",
+      "dateStarted": "2025-05-15T14:18:43+0000",
+      "dateFinished": "2025-05-15T14:18:43+0000",
       "status": "FINISHED",
       "focus": true,
-      "$$hashKey": "object:5099",
+      "$$hashKey": "object:181",
       "results": {
         "code": "SUCCESS",
         "msg": [
           {
             "type": "HTML",
-            "data": "<div class=\"markdown-body\">\n<h2>WARC for Spark (Part I)</h2>\n<p>In Part I of the final project, this notebook will help you get started on developing code to analyze Web Archive (WARC) files in Spark.</p>\n<p>In Part II, we will continue the assignment with the aim on large amounts of data on our provisioned AWS EMR cluster.</p>\n\n</div>"
+            "data": "<div class=\"markdown-body\">\n<h1>WARC for Spark</h1>\n<p>Web crawls (and their collection, a Web Archive) have standardized on the Web ARCive (WARC) format. The majority of CommonCrawl data that we work with in the final project is stored as WARC files. This notebook serves to help you get started on working with those WARC files using Apache Spark.</p>\n\n</div>"
           }
         ]
       }
     },
     {
-      "text": "import nl.surfsara.warcutils.WarcInputFormat\nimport org.jwat.warc.{WarcConstants, WarcRecord}\nimport org.apache.hadoop.io.LongWritable;\nimport org.apache.commons.lang.StringUtils;",
+      "text": " // Sanity check to verify that Spark wants to run.\n spark.version",
       "user": "anonymous",
-      "dateUpdated": "2020-06-09T00:17:34+0000",
+      "dateUpdated": "2025-05-15T14:18:48+0000",
+      "progress": 0,
       "config": {
         "editorSetting": {
           "language": "scala",
@@ -59,559 +66,11 @@
         "editorMode": "ace/mode/scala",
         "fontSize": 9,
         "editorHide": false,
-        "results": {},
-        "enabled": true,
-        "tableHide": false
-      },
-      "settings": {
-        "params": {},
-        "forms": {}
-      },
-      "apps": [],
-      "runtimeInfos": {},
-      "progressUpdateIntervalMs": 500,
-      "jobName": "paragraph_1591659459513_-833515648",
-      "id": "paragraph_1588608310770_596668663",
-      "dateCreated": "2020-06-08T23:37:39+0000",
-      "dateStarted": "2020-06-09T00:12:18+0000",
-      "dateFinished": "2020-06-09T00:12:18+0000",
-      "status": "FINISHED",
-      "$$hashKey": "object:5100"
-    },
-    {
-      "text": "%md\n### Use WARC contents\nLet us load some WARC file and carry out a few analyses.\nAssign `warcfile` an example WARC file to work with; I used `wget` to create a WARC file from the course website, e.g. using the `wget` command on [the final assignment course site](http://rubigdata.github.io/course/assignments/P-commoncrawl.html) (and copy the result into the container...):\n\n    wget -r -l 3 \"http://rubigdata.github.io/course/\" --warc-file=\"course\"",
-      "user": "anonymous",
-      "dateUpdated": "2020-06-09T00:18:14+0000",
-      "config": {
-        "editorSetting": {
-          "language": "text",
-          "editOnDblClick": false,
-          "completionKey": "TAB",
-          "completionSupport": true
-        },
-        "colWidth": 12,
-        "editorMode": "ace/mode/text",
-        "fontSize": 9,
-        "editorHide": true,
-        "results": {},
-        "enabled": false,
-        "tableHide": false
-      },
-      "settings": {
-        "params": {},
-        "forms": {}
-      },
-      "apps": [],
-      "runtimeInfos": {},
-      "progressUpdateIntervalMs": 500,
-      "jobName": "paragraph_1591659459514_624552236",
-      "id": "paragraph_1588609420701_-1754902728",
-      "dateCreated": "2020-06-08T23:37:39+0000",
-      "dateStarted": "2020-06-09T00:18:13+0000",
-      "dateFinished": "2020-06-09T00:18:13+0000",
-      "status": "FINISHED",
-      "$$hashKey": "object:5101",
-      "results": {
-        "code": "SUCCESS",
-        "msg": [
-          {
-            "type": "HTML",
-            "data": "<div class=\"markdown-body\">\n<h3>Use WARC contents</h3>\n<p>Let us load some WARC file and carry out a few analyses.<br />\nAssign <code>warcfile</code> an example WARC file to work with; I used <code>wget</code> to create a WARC file from the course website, e.g. using the <code>wget</code> command on <a href=\"http://rubigdata.github.io/course/assignments/P-commoncrawl.html\">the final assignment course site</a> (and copy the result into the container&hellip;):</p>\n<pre><code>wget -r -l 3 &quot;http://rubigdata.github.io/course/&quot; --warc-file=&quot;course&quot;\n</code></pre>\n\n</div>"
-          }
-        ]
-      }
-    },
-    {
-      "text": "val warcfile = \"/data/course.warc.gz\"",
-      "user": "anonymous",
-      "dateUpdated": "2020-06-09T00:17:34+0000",
-      "config": {
-        "editorSetting": {
-          "language": "scala",
-          "editOnDblClick": false,
-          "completionKey": "TAB",
-          "completionSupport": true
-        },
-        "colWidth": 12,
-        "editorMode": "ace/mode/scala",
-        "fontSize": 9,
-        "results": {},
-        "enabled": true,
-        "editorHide": false,
-        "tableHide": false
-      },
-      "settings": {
-        "params": {},
-        "forms": {}
-      },
-      "apps": [],
-      "runtimeInfos": {},
-      "progressUpdateIntervalMs": 500,
-      "jobName": "paragraph_1591659459514_-1162081514",
-      "id": "paragraph_1588609132466_2001529399",
-      "dateCreated": "2020-06-08T23:37:39+0000",
-      "dateStarted": "2020-06-09T00:15:08+0000",
-      "dateFinished": "2020-06-09T00:15:08+0000",
-      "status": "FINISHED",
-      "$$hashKey": "object:5102"
-    },
-    {
-      "text": "%md\nNow initialize an RDD from warcfile using the `WarcInputFormat` parser provided by `nl.surfsara.warcutils` (we added the necessary `import` commands above, and the necessary classes to the notebook dependencies; choose interpeter in the top right menu and search for \"spark\" should you want to add additional classes or jar files to your project):",
-      "user": "anonymous",
-      "dateUpdated": "2020-06-09T00:18:22+0000",
-      "config": {
-        "editorSetting": {
-          "language": "text",
-          "editOnDblClick": false,
-          "completionKey": "TAB",
-          "completionSupport": true
-        },
-        "colWidth": 12,
-        "editorMode": "ace/mode/text",
-        "fontSize": 9,
-        "editorHide": true,
-        "results": {},
-        "enabled": false,
-        "tableHide": false
-      },
-      "settings": {
-        "params": {},
-        "forms": {}
-      },
-      "apps": [],
-      "runtimeInfos": {},
-      "progressUpdateIntervalMs": 500,
-      "jobName": "paragraph_1591659459515_-2142677992",
-      "id": "paragraph_1588609296420_276145769",
-      "dateCreated": "2020-06-08T23:37:39+0000",
-      "dateStarted": "2020-06-09T00:18:20+0000",
-      "dateFinished": "2020-06-09T00:18:20+0000",
-      "status": "FINISHED",
-      "$$hashKey": "object:5103",
-      "results": {
-        "code": "SUCCESS",
-        "msg": [
-          {
-            "type": "HTML",
-            "data": "<div class=\"markdown-body\">\n<p>Now initialize an RDD from warcfile using the <code>WarcInputFormat</code> parser provided by <code>nl.surfsara.warcutils</code> (we added the necessary <code>import</code> commands above, and the necessary classes to the notebook dependencies; choose interpeter in the top right menu and search for &ldquo;spark&rdquo; should you want to add additional classes or jar files to your project):</p>\n\n</div>"
-          }
-        ]
-      }
-    },
-    {
-      "text": "val warcf = sc.newAPIHadoopFile(\n              warcfile,\n              classOf[WarcInputFormat],               // InputFormat\n              classOf[LongWritable],                  // Key\n              classOf[WarcRecord]                     // Value\n    )",
-      "user": "anonymous",
-      "dateUpdated": "2020-06-09T00:17:34+0000",
-      "config": {
-        "editorSetting": {
-          "language": "scala",
-          "editOnDblClick": false,
-          "completionKey": "TAB",
-          "completionSupport": true
-        },
-        "colWidth": 12,
-        "editorMode": "ace/mode/scala",
-        "fontSize": 9,
-        "results": {},
-        "enabled": true,
-        "tableHide": false
-      },
-      "settings": {
-        "params": {},
-        "forms": {}
-      },
-      "apps": [],
-      "runtimeInfos": {},
-      "progressUpdateIntervalMs": 500,
-      "jobName": "paragraph_1591659459515_-871771312",
-      "id": "paragraph_1588609307673_-2016189689",
-      "dateCreated": "2020-06-08T23:37:39+0000",
-      "dateStarted": "2020-06-09T00:14:18+0000",
-      "dateFinished": "2020-06-09T00:14:19+0000",
-      "status": "FINISHED",
-      "$$hashKey": "object:5104"
-    },
-    {
-      "text": "%md\n__Note:__ My own initial approach was to cache the constructed `RDD`; unfortunately, doing this interacts somehow (I do not exactly understand why yet) with the inner workings of the `WarcRecord` classes, resulting in `java.io.IOException: Stream closed` errors when operating on the payloads in these `WarcRecords`. I resorted to defining `warc` as a cached version, after an identity transform, and `warcc` as a transformation of `warcf` that already extracted the contents. \n\nIn your own code, ensure that you filter the stream as much as possible _before accessing the contents_ though (so do not build on the `warcc` result if you are not using all records).",
-      "user": "anonymous",
-      "dateUpdated": "2020-06-09T00:18:32+0000",
-      "config": {
-        "editorSetting": {
-          "language": "text",
-          "editOnDblClick": false,
-          "completionKey": "TAB",
-          "completionSupport": true
-        },
-        "colWidth": 12,
-        "editorMode": "ace/mode/text",
-        "fontSize": 9,
-        "editorHide": true,
-        "results": {},
-        "enabled": false,
-        "tableHide": false
-      },
-      "settings": {
-        "params": {},
-        "forms": {}
-      },
-      "apps": [],
-      "runtimeInfos": {},
-      "progressUpdateIntervalMs": 500,
-      "jobName": "paragraph_1591659459515_-1183328014",
-      "id": "paragraph_1588609349275_1871929838",
-      "dateCreated": "2020-06-08T23:37:39+0000",
-      "dateStarted": "2020-06-09T00:18:30+0000",
-      "dateFinished": "2020-06-09T00:18:30+0000",
-      "status": "FINISHED",
-      "$$hashKey": "object:5105",
-      "results": {
-        "code": "SUCCESS",
-        "msg": [
-          {
-            "type": "HTML",
-            "data": "<div class=\"markdown-body\">\n<p><strong>Note:</strong> My own initial approach was to cache the constructed <code>RDD</code>; unfortunately, doing this interacts somehow (I do not exactly understand why yet) with the inner workings of the <code>WarcRecord</code> classes, resulting in <code>java.io.IOException: Stream closed</code> errors when operating on the payloads in these <code>WarcRecords</code>. I resorted to defining <code>warc</code> as a cached version, after an identity transform, and <code>warcc</code> as a transformation of <code>warcf</code> that already extracted the contents.</p>\n<p>In your own code, ensure that you filter the stream as much as possible <em>before accessing the contents</em> though (so do not build on the <code>warcc</code> result if you are not using all records).</p>\n\n</div>"
-          }
-        ]
-      }
-    },
-    {
-      "text": "%md\n#### Using header info only",
-      "user": "anonymous",
-      "dateUpdated": "2020-06-09T00:18:48+0000",
-      "config": {
-        "editorSetting": {
-          "language": "text",
-          "editOnDblClick": false,
-          "completionKey": "TAB",
-          "completionSupport": true
-        },
-        "colWidth": 12,
-        "editorMode": "ace/mode/text",
-        "fontSize": 9,
-        "editorHide": true,
-        "results": {},
-        "enabled": false,
-        "tableHide": false
-      },
-      "settings": {
-        "params": {},
-        "forms": {}
-      },
-      "apps": [],
-      "runtimeInfos": {},
-      "progressUpdateIntervalMs": 500,
-      "jobName": "paragraph_1591659459515_-1422522630",
-      "id": "paragraph_1588609380037_-2104159242",
-      "dateCreated": "2020-06-08T23:37:39+0000",
-      "status": "FINISHED",
-      "$$hashKey": "object:5106",
-      "dateFinished": "2020-06-09T00:18:46+0000",
-      "dateStarted": "2020-06-09T00:18:46+0000",
-      "results": {
-        "code": "SUCCESS",
-        "msg": [
-          {
-            "type": "HTML",
-            "data": "<div class=\"markdown-body\">\n<h4>Using header info only</h4>\n\n</div>"
-          }
-        ]
-      }
-    },
-    {
-      "text": "val warc = warcf.map{wr => wr}.cache()",
-      "user": "anonymous",
-      "dateUpdated": "2020-06-09T00:17:34+0000",
-      "config": {
-        "editorSetting": {
-          "language": "scala",
-          "editOnDblClick": false,
-          "completionKey": "TAB",
-          "completionSupport": true
-        },
-        "colWidth": 12,
-        "editorMode": "ace/mode/scala",
-        "fontSize": 9,
-        "results": {},
-        "enabled": true,
-        "tableHide": false
-      },
-      "settings": {
-        "params": {},
-        "forms": {}
-      },
-      "apps": [],
-      "runtimeInfos": {},
-      "progressUpdateIntervalMs": 500,
-      "jobName": "paragraph_1591659459515_1154152297",
-      "id": "paragraph_1588609452429_-897535356",
-      "dateCreated": "2020-06-08T23:37:39+0000",
-      "dateStarted": "2020-06-09T00:15:37+0000",
-      "dateFinished": "2020-06-09T00:15:37+0000",
-      "status": "FINISHED",
-      "$$hashKey": "object:5107"
-    },
-    {
-      "text": "val nHTML = warc.count()",
-      "user": "anonymous",
-      "dateUpdated": "2020-06-09T00:17:34+0000",
-      "config": {
-        "editorSetting": {
-          "language": "scala",
-          "editOnDblClick": false,
-          "completionKey": "TAB",
-          "completionSupport": true
-        },
-        "colWidth": 12,
-        "editorMode": "ace/mode/scala",
-        "fontSize": 9,
-        "results": {},
-        "enabled": true,
-        "tableHide": false
-      },
-      "settings": {
-        "params": {},
-        "forms": {}
-      },
-      "apps": [],
-      "runtimeInfos": {
-        "jobUrl": {
-          "propertyName": "jobUrl",
-          "label": "SPARK JOB",
-          "tooltip": "View in Spark web UI",
-          "group": "spark",
-          "values": [
-            {
-              "jobUrl": "http://8065923c1610:4040/jobs/job?id=22",
-              "$$hashKey": "object:6069"
-            }
-          ],
-          "interpreterSettingId": "spark"
-        }
-      },
-      "progressUpdateIntervalMs": 500,
-      "jobName": "paragraph_1591659459515_-1840531778",
-      "id": "paragraph_1588609468093_-1569481143",
-      "dateCreated": "2020-06-08T23:37:39+0000",
-      "dateStarted": "2020-06-09T00:15:53+0000",
-      "dateFinished": "2020-06-09T00:15:54+0000",
-      "status": "FINISHED",
-      "$$hashKey": "object:5108"
-    },
-    {
-      "text": "// WarcRecords header type info\nwarc.map{ wr => wr._2.header }.\nmap{ h => (h.warcTypeIdx, h.warcTypeStr) }.take(10)",
-      "user": "anonymous",
-      "dateUpdated": "2020-06-09T00:17:34+0000",
-      "config": {
-        "editorSetting": {
-          "language": "scala",
-          "editOnDblClick": false,
-          "completionKey": "TAB",
-          "completionSupport": true
-        },
-        "colWidth": 12,
-        "editorMode": "ace/mode/scala",
-        "fontSize": 9,
-        "results": {},
-        "enabled": true,
-        "tableHide": false
-      },
-      "settings": {
-        "params": {},
-        "forms": {}
-      },
-      "apps": [],
-      "runtimeInfos": {
-        "jobUrl": {
-          "propertyName": "jobUrl",
-          "label": "SPARK JOB",
-          "tooltip": "View in Spark web UI",
-          "group": "spark",
-          "values": [
-            {
-              "jobUrl": "http://8065923c1610:4040/jobs/job?id=23",
-              "$$hashKey": "object:6117"
-            }
-          ],
-          "interpreterSettingId": "spark"
-        }
-      },
-      "progressUpdateIntervalMs": 500,
-      "jobName": "paragraph_1591659459516_-830516500",
-      "id": "paragraph_1588609479422_-2023549617",
-      "dateCreated": "2020-06-08T23:37:39+0000",
-      "dateStarted": "2020-06-09T00:15:56+0000",
-      "dateFinished": "2020-06-09T00:15:56+0000",
-      "status": "FINISHED",
-      "$$hashKey": "object:5109"
-    },
-    {
-      "text": "// Get responses with their size\nwarc.map{ wr => wr._2.header }.\n     filter{ _.warcTypeIdx == 2 /* response */ }.\n     map{ h => (h.warcTargetUriStr, h.contentLength, h.contentType.toString) }.collect().\n     foreach { println }",
-      "user": "anonymous",
-      "dateUpdated": "2020-06-09T00:17:34+0000",
-      "config": {
-        "editorSetting": {
-          "language": "scala",
-          "editOnDblClick": false,
-          "completionKey": "TAB",
-          "completionSupport": true
-        },
-        "colWidth": 12,
-        "editorMode": "ace/mode/scala",
-        "fontSize": 9,
-        "results": {
-          "0": {
-            "graph": {
-              "mode": "table",
-              "height": 84,
-              "optionOpen": false
-            }
-          }
-        },
-        "enabled": true,
-        "tableHide": false
-      },
-      "settings": {
-        "params": {},
-        "forms": {}
-      },
-      "apps": [],
-      "runtimeInfos": {
-        "jobUrl": {
-          "propertyName": "jobUrl",
-          "label": "SPARK JOB",
-          "tooltip": "View in Spark web UI",
-          "group": "spark",
-          "values": [
-            {
-              "jobUrl": "http://8065923c1610:4040/jobs/job?id=24",
-              "$$hashKey": "object:6165"
-            }
-          ],
-          "interpreterSettingId": "spark"
-        }
-      },
-      "progressUpdateIntervalMs": 500,
-      "jobName": "paragraph_1591659459516_-370080231",
-      "id": "paragraph_1588609488058_-646296040",
-      "dateCreated": "2020-06-08T23:37:39+0000",
-      "dateStarted": "2020-06-09T00:16:00+0000",
-      "dateFinished": "2020-06-09T00:16:01+0000",
-      "status": "FINISHED",
-      "$$hashKey": "object:5110"
-    },
-    {
-      "text": "// WarcRecords with responses that gave a 404:\nwarc.map{ wr => wr._2 }.\n     filter{ _.header.warcTypeIdx == 2 /* response */ }.\n     filter{ _.getHttpHeader().statusCode == 404 }.\n     map{ wr => wr.header.warcTargetUriStr }. collect().\n     foreach { println }",
-      "user": "anonymous",
-      "dateUpdated": "2020-06-09T00:17:34+0000",
-      "config": {
-        "editorSetting": {
-          "language": "scala",
-          "editOnDblClick": false,
-          "completionKey": "TAB",
-          "completionSupport": true
-        },
-        "colWidth": 12,
-        "editorMode": "ace/mode/scala",
-        "fontSize": 9,
-        "results": {},
-        "enabled": true,
-        "tableHide": false
-      },
-      "settings": {
-        "params": {},
-        "forms": {}
-      },
-      "apps": [],
-      "runtimeInfos": {
-        "jobUrl": {
-          "propertyName": "jobUrl",
-          "label": "SPARK JOB",
-          "tooltip": "View in Spark web UI",
-          "group": "spark",
-          "values": [
-            {
-              "jobUrl": "http://8065923c1610:4040/jobs/job?id=25",
-              "$$hashKey": "object:6213"
-            }
-          ],
-          "interpreterSettingId": "spark"
-        }
-      },
-      "progressUpdateIntervalMs": 500,
-      "jobName": "paragraph_1591659459516_497245212",
-      "id": "paragraph_1588609507230_-1296478454",
-      "dateCreated": "2020-06-08T23:37:39+0000",
-      "dateStarted": "2020-06-09T00:16:04+0000",
-      "dateFinished": "2020-06-09T00:16:05+0000",
-      "status": "FINISHED",
-      "$$hashKey": "object:5111"
-    },
-    {
-      "text": "// WarcRecords corresponding to HTML responses:\nwarc.map{ wr => wr._2 }.\n     filter{ _.header.warcTypeIdx == 2 /* response */ }.\n     filter{ _.getHttpHeader().contentType.startsWith(\"text/html\") }.\n     map{ wr => (wr.header.warcTargetUriStr, wr.getHttpHeader().contentType) }. collect()\n     .foreach{ println }",
-      "user": "anonymous",
-      "dateUpdated": "2020-06-09T00:17:34+0000",
-      "config": {
-        "editorSetting": {
-          "language": "scala",
-          "editOnDblClick": false,
-          "completionKey": "TAB",
-          "completionSupport": true
-        },
-        "colWidth": 12,
-        "editorMode": "ace/mode/scala",
-        "fontSize": 9,
-        "results": {},
-        "enabled": true,
-        "tableHide": false
-      },
-      "settings": {
-        "params": {},
-        "forms": {}
-      },
-      "apps": [],
-      "runtimeInfos": {
-        "jobUrl": {
-          "propertyName": "jobUrl",
-          "label": "SPARK JOB",
-          "tooltip": "View in Spark web UI",
-          "group": "spark",
-          "values": [
-            {
-              "jobUrl": "http://8065923c1610:4040/jobs/job?id=26",
-              "$$hashKey": "object:6261"
-            }
-          ],
-          "interpreterSettingId": "spark"
-        }
-      },
-      "progressUpdateIntervalMs": 500,
-      "jobName": "paragraph_1591659459516_-742414184",
-      "id": "paragraph_1588609711163_2115733464",
-      "dateCreated": "2020-06-08T23:37:39+0000",
-      "dateStarted": "2020-06-09T00:16:08+0000",
-      "dateFinished": "2020-06-09T00:16:09+0000",
-      "status": "FINISHED",
-      "$$hashKey": "object:5112"
-    },
-    {
-      "text": "%md\n#### Using contents\nDefine a utility function to get access to the Payload, i.e., the actual contents of the WarcRecords.",
-      "user": "anonymous",
-      "dateUpdated": "2020-06-09T00:19:11+0000",
-      "config": {
-        "tableHide": false,
-        "editorSetting": {
-          "language": "text",
-          "editOnDblClick": false,
-          "completionKey": "TAB",
-          "completionSupport": true
-        },
-        "colWidth": 12,
-        "editorMode": "ace/mode/text",
-        "fontSize": 9,
-        "editorHide": true,
+        "runOnSelectionChange": true,
         "title": false,
+        "checkEmpty": true,
         "results": {},
-        "enabled": false
+        "enabled": true
       },
       "settings": {
         "params": {},
@@ -620,40 +79,42 @@
       "apps": [],
       "runtimeInfos": {},
       "progressUpdateIntervalMs": 500,
-      "jobName": "paragraph_1591659459516_1331629801",
-      "id": "paragraph_1588609791682_1255723765",
-      "dateCreated": "2020-06-08T23:37:39+0000",
+      "jobName": "paragraph_1747306833086_1204440264",
+      "id": "paragraph_1592823481545_-1436398742",
+      "dateCreated": "2025-05-15T11:00:33+0000",
+      "dateStarted": "2025-05-15T14:18:48+0000",
+      "dateFinished": "2025-05-15T14:18:48+0000",
       "status": "FINISHED",
-      "$$hashKey": "object:5113",
-      "dateFinished": "2020-06-09T00:19:10+0000",
-      "dateStarted": "2020-06-09T00:19:10+0000",
+      "$$hashKey": "object:182",
       "results": {
         "code": "SUCCESS",
         "msg": [
           {
-            "type": "HTML",
-            "data": "<div class=\"markdown-body\">\n<h4>Using contents</h4>\n<p>Define a utility function to get access to the Payload, i.e., the actual contents of the WarcRecords.</p>\n\n</div>"
+            "type": "TEXT",
+            "data": "\u001b[1m\u001b[34mres12\u001b[0m: \u001b[1m\u001b[32mString\u001b[0m = 3.1.1\n"
           }
         ]
       }
     },
     {
-      "text": "import java.io.InputStreamReader;\ndef getContent(record: WarcRecord):String = {\n  val cLen = record.header.contentLength.toInt\n  //val cStream = record.getPayload.getInputStreamComplete()\n  val cStream = record.getPayload.getInputStream()\n  val content = new java.io.ByteArrayOutputStream();\n\n  val buf = new Array[Byte](cLen)\n  \n  var nRead = cStream.read(buf)\n  while (nRead != -1) {\n    content.write(buf, 0, nRead)\n    nRead = cStream.read(buf)\n  }\n\n  cStream.close()\n  \n  content.toString(\"UTF-8\");\n}",
+      "text": "%md\n## Develop on Small Data...\n\nBefore scaling up, you need to know what you are doing. Luckily, `wget` has an option to write out its data as WARC files, so we can get a primitive crawler by just giving the right options to this default tool for Web analysis. Let's create a small WARC file, for example by crawling a part of Radboud University's Data Science web data - feel free to take a different WARC file as input, using a seed URL of your own choosing, but make sure to not crawl too much data for these initial steps. If you get stuck, just use the sample command below instead of your own Web snapshot.\n\n_Note: if you have trouble getting the data, try the `wget` command without the shell scripting, perhaps through `docker exec` instead of using a `%sh` cell._",
       "user": "anonymous",
-      "dateUpdated": "2020-06-09T00:17:34+0000",
+      "dateUpdated": "2025-05-15T14:18:45+0000",
+      "progress": 0,
       "config": {
+        "tableHide": false,
         "editorSetting": {
-          "language": "scala",
-          "editOnDblClick": false,
+          "language": "markdown",
+          "editOnDblClick": true,
           "completionKey": "TAB",
-          "completionSupport": true
+          "completionSupport": false
         },
         "colWidth": 12,
-        "editorMode": "ace/mode/scala",
+        "editorMode": "ace/mode/markdown",
         "fontSize": 9,
+        "editorHide": true,
         "results": {},
-        "enabled": true,
-        "tableHide": false
+        "enabled": true
       },
       "settings": {
         "params": {},
@@ -662,31 +123,40 @@
       "apps": [],
       "runtimeInfos": {},
       "progressUpdateIntervalMs": 500,
-      "jobName": "paragraph_1591659459516_-108150789",
-      "id": "paragraph_1588609802622_-166858166",
-      "dateCreated": "2020-06-08T23:37:39+0000",
-      "dateStarted": "2020-06-09T00:16:16+0000",
-      "dateFinished": "2020-06-09T00:16:16+0000",
+      "jobName": "paragraph_1747306833086_401318476",
+      "id": "paragraph_1620777173503_1367949918",
+      "dateCreated": "2025-05-15T11:00:33+0000",
+      "dateStarted": "2025-05-15T14:18:45+0000",
+      "dateFinished": "2025-05-15T14:18:45+0000",
       "status": "FINISHED",
-      "$$hashKey": "object:5114"
+      "$$hashKey": "object:183",
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<h2>Develop on Small Data&hellip;</h2>\n<p>Before scaling up, you need to know what you are doing. Luckily, <code>wget</code> has an option to write out its data as WARC files, so we can get a primitive crawler by just giving the right options to this default tool for Web analysis. Let&rsquo;s create a small WARC file, for example by crawling a part of Radboud University&rsquo;s Data Science web data - feel free to take a different WARC file as input, using a seed URL of your own choosing, but make sure to not crawl too much data for these initial steps. If you get stuck, just use the sample command below instead of your own Web snapshot.</p>\n<p><em>Note: if you have trouble getting the data, try the <code>wget</code> command without the shell scripting, perhaps through <code>docker exec</code> instead of using a <code>%sh</code> cell.</em></p>\n\n</div>"
+          }
+        ]
+      }
     },
     {
-      "text": "// Taking a substring to avoid messing up the rendering of results in the Notebook - would need proper handling\nval warcc = warcf.\n  filter{ _._2.header.warcTypeIdx == 2 /* response */ }.\n  filter{ _._2.getHttpHeader().contentType.startsWith(\"text/html\") }.\n  map{wr => (wr._2.header.warcTargetUriStr, StringUtils.substring(getContent(wr._2), 0, 256))}.cache()",
+      "text": "%sh\n[ ! -f course.warc.gz ] && wget -r -l 3 \"https://www.ru.nl/datascience/\" --delete-after --no-directories --warc-file=\"course\" || echo Most likely, course.warc.gz already exists",
       "user": "anonymous",
-      "dateUpdated": "2020-06-09T00:17:34+0000",
+      "dateUpdated": "2025-05-15T14:09:35+0000",
+      "progress": 0,
       "config": {
         "editorSetting": {
-          "language": "scala",
+          "language": "sh",
           "editOnDblClick": false,
           "completionKey": "TAB",
-          "completionSupport": true
+          "completionSupport": false
         },
         "colWidth": 12,
-        "editorMode": "ace/mode/scala",
+        "editorMode": "ace/mode/sh",
         "fontSize": 9,
         "results": {},
-        "enabled": true,
-        "tableHide": false
+        "enabled": true
       },
       "settings": {
         "params": {},
@@ -695,18 +165,236 @@
       "apps": [],
       "runtimeInfos": {},
       "progressUpdateIntervalMs": 500,
-      "jobName": "paragraph_1591659459516_1419579195",
-      "id": "paragraph_1588609826745_-1812427005",
-      "dateCreated": "2020-06-08T23:37:39+0000",
-      "dateStarted": "2020-06-09T00:16:23+0000",
-      "dateFinished": "2020-06-09T00:16:24+0000",
+      "jobName": "paragraph_1747306833086_1683240778",
+      "id": "paragraph_1652094445724_313733151",
+      "dateCreated": "2025-05-15T11:00:33+0000",
+      "dateStarted": "2025-05-15T14:09:35+0000",
+      "dateFinished": "2025-05-15T14:09:35+0000",
       "status": "FINISHED",
-      "$$hashKey": "object:5115"
+      "$$hashKey": "object:184"
     },
     {
-      "text": "warcc.take(10)",
+      "text": "%md\n\nDid you know you can make your notebooks interactive? Type the filename corresponding to the \"crawl\" you created above in the box:",
       "user": "anonymous",
-      "dateUpdated": "2020-06-09T00:17:34+0000",
+      "dateUpdated": "2025-05-15T14:18:52+0000",
+      "progress": 0,
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/markdown",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1747306833087_301857081",
+      "id": "paragraph_1620781575967_2115801533",
+      "dateCreated": "2025-05-15T11:00:33+0000",
+      "dateStarted": "2025-05-15T14:18:52+0000",
+      "dateFinished": "2025-05-15T14:18:52+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:185",
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<p>Did you know you can make your notebooks interactive? Type the filename corresponding to the &ldquo;crawl&rdquo; you created above in the box:</p>\n\n</div>"
+          }
+        ]
+      }
+    },
+    {
+      "text": "val fname = z.textbox(\"Filename:\")\nval warcfile = s\"file:///opt/hadoop/rubigdata/${fname}.warc.gz\"",
+      "user": "anonymous",
+      "dateUpdated": "2025-05-15T14:09:59+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "runOnSelectionChange": true,
+        "title": false,
+        "checkEmpty": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {
+          "uname=arjen": "arjen",
+          "Username:": "arjen",
+          "Filename:": "course"
+        },
+        "forms": {
+          "Filename:": {
+            "type": "TextBox",
+            "name": "Filename:",
+            "displayName": "Filename:",
+            "defaultValue": "",
+            "hidden": false,
+            "$$hashKey": "object:665"
+          }
+        }
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1747306833087_1324283325",
+      "id": "paragraph_1593006243066_-1927711322",
+      "dateCreated": "2025-05-15T11:00:33+0000",
+      "dateStarted": "2025-05-15T14:09:59+0000",
+      "dateFinished": "2025-05-15T14:09:59+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:186"
+    },
+    {
+      "text": "%md\n\nYou can overrule default Spark Context settings as follows:",
+      "user": "anonymous",
+      "dateUpdated": "2025-05-15T14:19:00+0000",
+      "progress": 0,
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/markdown",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1747306833087_864807928",
+      "id": "paragraph_1620781671235_1386710811",
+      "dateCreated": "2025-05-15T11:00:33+0000",
+      "dateStarted": "2025-05-15T14:19:00+0000",
+      "dateFinished": "2025-05-15T14:19:00+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:187",
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<p>You can overrule default Spark Context settings as follows:</p>\n\n</div>"
+          }
+        ]
+      }
+    },
+    {
+      "text": "// Overrule default settings\nimport org.apache.spark.SparkConf\nimport org.apache.spark.sql.SparkSession\n\nval sparkConf = new SparkConf()\n    .setAppName(\"RUBigData WARC4Spark 2025\")\n\nimplicit val sparkSession = SparkSession.builder().config(sparkConf).getOrCreate()\nval sc = sparkSession.sparkContext",
+      "user": "anonymous",
+      "dateUpdated": "2025-05-15T14:09:41+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "runOnSelectionChange": true,
+        "title": false,
+        "checkEmpty": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1747306833087_1512445294",
+      "id": "paragraph_1592843625523_1447356129",
+      "dateCreated": "2025-05-15T11:00:33+0000",
+      "dateStarted": "2025-05-15T14:09:42+0000",
+      "dateFinished": "2025-05-15T14:09:42+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:188"
+    },
+    {
+      "text": "%md\n\n## Reading WARC files\n\nWe have created a custom WARC input format ([`warc4spark`](https://github.com/rubigdata/warc4spark)) for Spark's DataFrame API. It is based on the WARC parsing library [`jwarc`](https://github.com/iipc/jwarc/), which is provided through the IIPC, the [International Internet Preservation Consortium](http://netpreserve.org/). Be sure to check out the `warc4spark` documentation to see all usage options!\n\nTo load one or more WARC files into a DataFrame, simply use the `org.rubigdata.warc` data source. _If Spark complains this format could not be found, make sure you have the warc4spark library installed._",
+      "user": "anonymous",
+      "dateUpdated": "2025-05-15T14:19:00+0000",
+      "progress": 0,
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/markdown",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1747317089943_339346669",
+      "id": "paragraph_1747317089943_339346669",
+      "dateCreated": "2025-05-15T13:51:29+0000",
+      "dateStarted": "2025-05-15T14:19:00+0000",
+      "dateFinished": "2025-05-15T14:19:00+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:189",
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<h2>Reading WARC files</h2>\n<p>We have created a custom WARC input format (<a href=\"https://github.com/rubigdata/warc4spark\"><code>warc4spark</code></a>) for Spark&rsquo;s DataFrame API. It is based on the WARC parsing library <a href=\"https://github.com/iipc/jwarc/\"><code>jwarc</code></a>, which is provided through the IIPC, the <a href=\"http://netpreserve.org/\">International Internet Preservation Consortium</a>. Be sure to check out the <code>warc4spark</code> documentation to see all usage options!</p>\n<p>To load one or more WARC files into a DataFrame, simply use the <code>org.rubigdata.warc</code> data source. <em>If Spark complains this format could not be found, make sure you have the warc4spark library installed.</em></p>\n\n</div>"
+          }
+        ]
+      }
+    },
+    {
+      "text": "val warcs = spark\n    .read\n    .format(\"org.rubigdata.warc\")\n    .load(warcfile)\n\nwarcs.show()",
+      "user": "anonymous",
+      "dateUpdated": "2025-05-15T14:10:03+0000",
+      "progress": 0,
       "config": {
         "editorSetting": {
           "language": "scala",
@@ -718,8 +406,7 @@
         "editorMode": "ace/mode/scala",
         "fontSize": 9,
         "results": {},
-        "enabled": true,
-        "tableHide": false
+        "enabled": true
       },
       "settings": {
         "params": {},
@@ -734,40 +421,41 @@
           "group": "spark",
           "values": [
             {
-              "jobUrl": "http://8065923c1610:4040/jobs/job?id=27",
-              "$$hashKey": "object:6433"
+              "jobUrl": "http://82da41719431:4040/jobs/job?id=0",
+              "$$hashKey": "object:1347"
             }
           ],
           "interpreterSettingId": "spark"
         }
       },
       "progressUpdateIntervalMs": 500,
-      "jobName": "paragraph_1591659459516_204806290",
-      "id": "paragraph_1588609839577_-369879590",
-      "dateCreated": "2020-06-08T23:37:39+0000",
-      "dateStarted": "2020-06-09T00:16:28+0000",
-      "dateFinished": "2020-06-09T00:16:29+0000",
+      "jobName": "paragraph_1747311888071_2075867106",
+      "id": "paragraph_1747311888071_2075867106",
+      "dateCreated": "2025-05-15T12:24:48+0000",
+      "dateStarted": "2025-05-15T14:10:03+0000",
+      "dateFinished": "2025-05-15T14:10:05+0000",
       "status": "FINISHED",
-      "$$hashKey": "object:5116"
+      "$$hashKey": "object:190"
     },
     {
-      "text": "%md\n### Example: Use Jsoup to convert HTML to Text\n\n[Jsoup](https://jsoup.org/) is a widely used library to clean HTML and extract specific parts, like anchor text for example. Feel free to use it in your project!",
+      "text": "%md\nAs you can see, there are different types of WARC records in the WARC files. The `warcinfo` records contain some metadata about the whole WARC file (e.g. the crawler used). The `request` records contain information about the requests issued by the crawler, and the `response` records contain the actual HTTP responses returned by the web server. When working with WARC files, we are often mostly interested in the HTTP responses and their HTML contents, so we can filter on the `response` records.",
       "user": "anonymous",
-      "dateUpdated": "2020-06-09T00:19:25+0000",
+      "dateUpdated": "2025-05-15T14:19:00+0000",
+      "progress": 0,
       "config": {
         "tableHide": false,
         "editorSetting": {
-          "language": "text",
-          "editOnDblClick": false,
+          "language": "markdown",
+          "editOnDblClick": true,
           "completionKey": "TAB",
-          "completionSupport": true
+          "completionSupport": false
         },
         "colWidth": 12,
-        "editorMode": "ace/mode/text",
+        "editorMode": "ace/mode/markdown",
         "fontSize": 9,
         "editorHide": true,
         "results": {},
-        "enabled": false
+        "enabled": true
       },
       "settings": {
         "params": {},
@@ -776,29 +464,211 @@
       "apps": [],
       "runtimeInfos": {},
       "progressUpdateIntervalMs": 500,
-      "jobName": "paragraph_1591659459516_-1306226674",
-      "id": "paragraph_1588610038807_1350393434",
-      "dateCreated": "2020-06-08T23:37:39+0000",
-      "dateStarted": "2020-06-09T00:19:23+0000",
-      "dateFinished": "2020-06-09T00:19:23+0000",
+      "jobName": "paragraph_1747311947994_1820276199",
+      "id": "paragraph_1747311947994_1820276199",
+      "dateCreated": "2025-05-15T12:25:47+0000",
+      "dateStarted": "2025-05-15T14:19:00+0000",
+      "dateFinished": "2025-05-15T14:19:00+0000",
       "status": "FINISHED",
-      "$$hashKey": "object:5117",
+      "$$hashKey": "object:191",
       "results": {
         "code": "SUCCESS",
         "msg": [
           {
             "type": "HTML",
-            "data": "<div class=\"markdown-body\">\n<h3>Example: Use Jsoup to convert HTML to Text</h3>\n<p><a href=\"https://jsoup.org/\">Jsoup</a> is a widely used library to clean HTML and extract specific parts, like anchor text for example. Feel free to use it in your project!</p>\n\n</div>"
+            "data": "<div class=\"markdown-body\">\n<p>As you can see, there are different types of WARC records in the WARC files. The <code>warcinfo</code> records contain some metadata about the whole WARC file (e.g. the crawler used). The <code>request</code> records contain information about the requests issued by the crawler, and the <code>response</code> records contain the actual HTTP responses returned by the web server. When working with WARC files, we are often mostly interested in the HTTP responses and their HTML contents, so we can filter on the <code>response</code> records.</p>\n\n</div>"
           }
         ]
       }
     },
     {
-      "text": "import java.io.IOException;\nimport org.jsoup.Jsoup;\n\ndef HTML2Txt(content: String) = {\n  try {\n    Jsoup.parse(content).text().replaceAll(\"[\\\\r\\\\n]+\", \" \")\n  }\n  catch {\n    case e: Exception => throw new IOException(\"Caught exception processing input row \", e)\n  }\n}",
+      "text": "val warcResponses = warcs\n    .filter($\"warcType\" === \"response\")\n\nwarcResponses.show()",
       "user": "anonymous",
-      "dateUpdated": "2020-06-09T00:17:34+0000",
+      "dateUpdated": "2025-05-15T14:10:08+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {
+        "jobUrl": {
+          "propertyName": "jobUrl",
+          "label": "SPARK JOB",
+          "tooltip": "View in Spark web UI",
+          "group": "spark",
+          "values": [
+            {
+              "jobUrl": "http://82da41719431:4040/jobs/job?id=1",
+              "$$hashKey": "object:1433"
+            }
+          ],
+          "interpreterSettingId": "spark"
+        }
+      },
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1747312119352_720045672",
+      "id": "paragraph_1747312119352_720045672",
+      "dateCreated": "2025-05-15T12:28:39+0000",
+      "dateStarted": "2025-05-15T14:10:08+0000",
+      "dateFinished": "2025-05-15T14:10:08+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:192"
+    },
+    {
+      "text": "%md\nThe `warcBody` column contains the whole HTTP responses, so let's go ahead and parse them to split the records into HTTP headers and HTTP bodies. We do so by using the `parseHTTP` option of the WARC input format.",
+      "user": "anonymous",
+      "dateUpdated": "2025-05-15T14:19:02+0000",
+      "progress": 0,
       "config": {
         "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/markdown",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1747312173981_1242511516",
+      "id": "paragraph_1747312173981_1242511516",
+      "dateCreated": "2025-05-15T12:29:33+0000",
+      "dateStarted": "2025-05-15T14:19:02+0000",
+      "dateFinished": "2025-05-15T14:19:02+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:193",
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<p>The <code>warcBody</code> column contains the whole HTTP responses, so let&rsquo;s go ahead and parse them to split the records into HTTP headers and HTTP bodies. We do so by using the <code>parseHTTP</code> option of the WARC input format.</p>\n\n</div>"
+          }
+        ]
+      }
+    },
+    {
+      "text": "val httpRecords = spark\n    .read\n    .format(\"org.rubigdata.warc\")\n    .option(\"parseHTTP\", true)\n    .load(warcfile)\n    .filter($\"warcType\" === \"response\")\n\nhttpRecords.show()",
+      "user": "anonymous",
+      "dateUpdated": "2025-05-15T14:10:11+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {
+        "jobUrl": {
+          "propertyName": "jobUrl",
+          "label": "SPARK JOB",
+          "tooltip": "View in Spark web UI",
+          "group": "spark",
+          "values": [
+            {
+              "jobUrl": "http://82da41719431:4040/jobs/job?id=2",
+              "$$hashKey": "object:1519"
+            }
+          ],
+          "interpreterSettingId": "spark"
+        }
+      },
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1747312152432_1666231775",
+      "id": "paragraph_1747312152432_1666231775",
+      "dateCreated": "2025-05-15T12:29:12+0000",
+      "dateStarted": "2025-05-15T14:10:11+0000",
+      "dateFinished": "2025-05-15T14:10:12+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:194"
+    },
+    {
+      "text": "%md\n## Filter pushdown and column pruning\n\nTo optimize the process of reading (subsets of) WARC files, we have implemented filter pushdown and column pruning into the WARC data source. This means that Spark can optimize certain `filter` or `select` queries by pushing the required filters or projections into the data source, meaning less data will be read/processed and your application can complete faster. Predicate pushdown is supported for columns `warcId`, `warcType`, `warcTargetUri`, `warcDate` and `contentType`, for null checks, equality checks, and startsWith/endsWith/contains operators on string columns.\n\nYou can see whether your Spark query makes use of filter pushdown and column pruning by calling `explain` on your DataFrame.",
+      "user": "anonymous",
+      "dateUpdated": "2025-05-15T14:19:14+0000",
+      "progress": 0,
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/markdown",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1747314390369_1109730206",
+      "id": "paragraph_1747314390369_1109730206",
+      "dateCreated": "2025-05-15T13:06:30+0000",
+      "dateStarted": "2025-05-15T14:19:14+0000",
+      "dateFinished": "2025-05-15T14:19:14+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:195",
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<h2>Filter pushdown and column pruning</h2>\n<p>To optimize the process of reading (subsets of) WARC files, we have implemented filter pushdown and column pruning into the WARC data source. This means that Spark can optimize certain <code>filter</code> or <code>select</code> queries by pushing the required filters or projections into the data source, meaning less data will be read/processed and your application can complete faster. Predicate pushdown is supported for columns <code>warcId</code>, <code>warcType</code>, <code>warcTargetUri</code>, <code>warcDate</code> and <code>contentType</code>, for null checks, equality checks, and startsWith/endsWith/contains operators on string columns.</p>\n<p>You can see whether your Spark query makes use of filter pushdown and column pruning by calling <code>explain</code> on your DataFrame.</p>\n\n</div>"
+          }
+        ]
+      }
+    },
+    {
+      "text": "httpRecords\n    .select(\"warcTargetUri\", \"httpBody\")\n    .explain()",
+      "user": "anonymous",
+      "dateUpdated": "2025-05-15T13:53:47+0000",
+      "progress": 0,
+      "config": {
         "editorSetting": {
           "language": "scala",
           "editOnDblClick": false,
@@ -818,20 +688,563 @@
       "apps": [],
       "runtimeInfos": {},
       "progressUpdateIntervalMs": 500,
-      "jobName": "paragraph_1591659459517_927759873",
-      "id": "paragraph_1588610097859_1707259655",
-      "dateCreated": "2020-06-08T23:37:39+0000",
-      "dateStarted": "2020-06-09T00:16:33+0000",
-      "dateFinished": "2020-06-09T00:16:33+0000",
+      "jobName": "paragraph_1747312333127_764923956",
+      "id": "paragraph_1747312333127_764923956",
+      "dateCreated": "2025-05-15T12:32:13+0000",
+      "dateStarted": "2025-05-15T13:06:27+0000",
+      "dateFinished": "2025-05-15T13:06:27+0000",
       "status": "FINISHED",
-      "$$hashKey": "object:5118"
+      "$$hashKey": "object:196"
     },
     {
-      "text": "val warcc = warcf.\n  filter{ _._2.header.warcTypeIdx == 2 /* response */ }.\n  filter{ _._2.getHttpHeader().contentType.startsWith(\"text/html\") }.\n  map{wr => ( wr._2.header.warcTargetUriStr, HTML2Txt(getContent(wr._2)) )}.cache()",
+      "text": "%md\nYou can see that the `warcType` filter was pushed into the data source (ensuring, e.g., that we don't parse HTTP records for non-`response` records), and only the `warcTargetUri` and `httpBody` strings are actually read by the data source (so that we don't perform useless operations like parsing the WARC or HTTP headers).\n\nIf you correctly apply such filters, your queries on the Common Crawl should be able to complete much faster than if you were to scan the whole WARC collection. This should especially improve efficiency for highly selective queries (like queries that filter on \".nl\" in the URL).",
       "user": "anonymous",
-      "dateUpdated": "2020-06-09T00:17:34+0000",
+      "dateUpdated": "2025-05-15T14:19:17+0000",
+      "progress": 0,
       "config": {
         "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/markdown",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1747314855278_1357194499",
+      "id": "paragraph_1747314855278_1357194499",
+      "dateCreated": "2025-05-15T13:14:15+0000",
+      "dateStarted": "2025-05-15T14:19:17+0000",
+      "dateFinished": "2025-05-15T14:19:17+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:197",
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<p>You can see that the <code>warcType</code> filter was pushed into the data source (ensuring, e.g., that we don&rsquo;t parse HTTP records for non-<code>response</code> records), and only the <code>warcTargetUri</code> and <code>httpBody</code> strings are actually read by the data source (so that we don&rsquo;t perform useless operations like parsing the WARC or HTTP headers).</p>\n<p>If you correctly apply such filters, your queries on the Common Crawl should be able to complete much faster than if you were to scan the whole WARC collection. This should especially improve efficiency for highly selective queries (like queries that filter on &ldquo;.nl&rdquo; in the URL).</p>\n\n</div>"
+          }
+        ]
+      }
+    },
+    {
+      "text": "%md\n## Working with the data\n\nLooks like we now have a DataFrame with WARC/HTTP records in a way that we can use them! Let's first see how we can work with the headers that we extracted. Both the WARC and the HTTP headers are extracted as `map<string,array<string>>` values, because each header can in theory be used multiple times. To access the headers, we can issue queries like this:",
+      "user": "anonymous",
+      "dateUpdated": "2025-05-15T14:19:20+0000",
+      "progress": 0,
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/markdown",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1747315091325_385757348",
+      "id": "paragraph_1747315091325_385757348",
+      "dateCreated": "2025-05-15T13:18:11+0000",
+      "dateStarted": "2025-05-15T14:19:20+0000",
+      "dateFinished": "2025-05-15T14:19:20+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:198",
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<h2>Working with the data</h2>\n<p>Looks like we now have a DataFrame with WARC/HTTP records in a way that we can use them! Let&rsquo;s first see how we can work with the headers that we extracted. Both the WARC and the HTTP headers are extracted as <code>map&lt;string,array&lt;string&gt;&gt;</code> values, because each header can in theory be used multiple times. To access the headers, we can issue queries like this:</p>\n\n</div>"
+          }
+        ]
+      }
+    },
+    {
+      "text": "httpRecords\n    .select($\"warcTargetUri\", $\"warcHeaders.Content-Length\"(0).as(\"WARC-Content-Length\"), $\"httpHeaders.Content-Length\"(0).as(\"HTTP-Content-Length\"))\n    .show(20, 60)",
+      "user": "anonymous",
+      "dateUpdated": "2025-05-15T13:54:45+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {
+        "jobUrl": {
+          "propertyName": "jobUrl",
+          "label": "SPARK JOB",
+          "tooltip": "View in Spark web UI",
+          "group": "spark",
+          "values": [
+            {
+              "jobUrl": "http://82da41719431:4040/jobs/job?id=16",
+              "$$hashKey": "object:1725"
+            }
+          ],
+          "interpreterSettingId": "spark"
+        }
+      },
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1747315798676_1301559928",
+      "id": "paragraph_1747315798676_1301559928",
+      "dateCreated": "2025-05-15T13:29:58+0000",
+      "dateStarted": "2025-05-15T13:54:45+0000",
+      "dateFinished": "2025-05-15T13:54:45+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:199"
+    },
+    {
+      "text": "%md\nWe can use this to filter on HTTP records that contain actual HTML pages (rather than other resources like stylesheets, images, etc.).\n\n_A brief warning: WARC records have headers, but they can also include HTTP headers, which are two different things that are easily mixed up. When working with record headers, make sure you use the right ones._",
+      "user": "anonymous",
+      "dateUpdated": "2025-05-15T14:19:27+0000",
+      "progress": 0,
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/markdown",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1747315906548_65896213",
+      "id": "paragraph_1747315906548_65896213",
+      "dateCreated": "2025-05-15T13:31:46+0000",
+      "dateStarted": "2025-05-15T14:19:27+0000",
+      "dateFinished": "2025-05-15T14:19:27+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:200",
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<p>We can use this to filter on HTTP records that contain actual HTML pages (rather than other resources like stylesheets, images, etc.).</p>\n<p><em>A brief warning: WARC records have headers, but they can also include HTTP headers, which are two different things that are easily mixed up. When working with record headers, make sure you use the right ones.</em></p>\n\n</div>"
+          }
+        ]
+      }
+    },
+    {
+      "text": "httpRecords\n    .select(\"warcTargetUri\", \"httpContentType\")\n    .show(20, 60)",
+      "user": "anonymous",
+      "dateUpdated": "2025-05-15T14:17:10+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {
+        "jobUrl": {
+          "propertyName": "jobUrl",
+          "label": "SPARK JOB",
+          "tooltip": "View in Spark web UI",
+          "group": "spark",
+          "values": [
+            {
+              "jobUrl": "http://82da41719431:4040/jobs/job?id=7",
+              "$$hashKey": "object:1811"
+            }
+          ],
+          "interpreterSettingId": "spark"
+        }
+      },
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1747315991484_236610373",
+      "id": "paragraph_1747315991484_236610373",
+      "dateCreated": "2025-05-15T13:33:11+0000",
+      "dateStarted": "2025-05-15T14:17:10+0000",
+      "dateFinished": "2025-05-15T14:17:10+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:201"
+    },
+    {
+      "text": "val htmlRecords = httpRecords\n    .filter($\"httpContentType\".startsWith(\"text/html\"))\n\nhtmlRecords.select(\"warcTargetUri\", \"httpContentType\").show(20, 60)",
+      "user": "anonymous",
+      "dateUpdated": "2025-05-15T14:14:28+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {
+        "jobUrl": {
+          "propertyName": "jobUrl",
+          "label": "SPARK JOB",
+          "tooltip": "View in Spark web UI",
+          "group": "spark",
+          "values": [
+            {
+              "jobUrl": "http://82da41719431:4040/jobs/job?id=6",
+              "$$hashKey": "object:1857"
+            }
+          ],
+          "interpreterSettingId": "spark"
+        }
+      },
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1747316160417_1531874872",
+      "id": "paragraph_1747316160417_1531874872",
+      "dateCreated": "2025-05-15T13:36:00+0000",
+      "dateStarted": "2025-05-15T14:14:28+0000",
+      "dateFinished": "2025-05-15T14:14:28+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:202"
+    },
+    {
+      "text": "%md\nLet's now look into the data itself!\n\nThe data is going to be messy, especially in the real crawl, so you have to determine carefully how much processing you want to actually carry out, and on which data. E.g., the filter in the previous query would be better to apply here too (but inversely), as you will see that string functions are also applied to image content _(so this is just to illustrate, do not just copy into your project but rework the example)_.",
+      "user": "anonymous",
+      "dateUpdated": "2025-05-15T14:19:27+0000",
+      "progress": 0,
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/markdown",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1747316329396_849966948",
+      "id": "paragraph_1747316329396_849966948",
+      "dateCreated": "2025-05-15T13:38:49+0000",
+      "dateStarted": "2025-05-15T14:19:27+0000",
+      "dateFinished": "2025-05-15T14:19:27+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:203",
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<p>Let&rsquo;s now look into the data itself!</p>\n<p>The data is going to be messy, especially in the real crawl, so you have to determine carefully how much processing you want to actually carry out, and on which data. E.g., the filter in the previous query would be better to apply here too (but inversely), as you will see that string functions are also applied to image content <em>(so this is just to illustrate, do not just copy into your project but rework the example)</em>.</p>\n\n</div>"
+          }
+        ]
+      }
+    },
+    {
+      "text": "httpRecords\n    .filter(length($\"httpBody\") > 0)\n    .select(\n        substring($\"warcTargetUri\", 0, 50).as(\"warcTargetUri\"),\n        trim(regexp_replace(substring($\"httpBody\", 0, 200), raw\"\\s+\", \" \")).as(\"httpBody\"),\n    )\n    .show(20, 250)",
+      "user": "anonymous",
+      "dateUpdated": "2025-05-15T13:40:50+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {
+        "jobUrl": {
+          "propertyName": "jobUrl",
+          "label": "SPARK JOB",
+          "tooltip": "View in Spark web UI",
+          "group": "spark",
+          "values": [
+            {
+              "jobUrl": "http://82da41719431:4040/jobs/job?id=12",
+              "$$hashKey": "object:1943"
+            }
+          ],
+          "interpreterSettingId": "spark"
+        }
+      },
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1747316395876_1573423491",
+      "id": "paragraph_1747316395876_1573423491",
+      "dateCreated": "2025-05-15T13:39:55+0000",
+      "dateStarted": "2025-05-15T13:40:50+0000",
+      "dateFinished": "2025-05-15T13:40:50+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:204"
+    },
+    {
+      "text": "%md\nUse [`Jsoup` (link)](https://jsoup.org) to get access to an HTML parser, to obtain the values of specific tags, get rid of tags, _etc._\n\nJsoup is a package just like the Sedona packages we added in the Open Data assignment (A4). If not there, please add the following line again to `spark.jars.packages` in the Spark interpreter (comma-separated): `org.jsoup:jsoup:1.11.3`\n\nIf you try to move access to using `Jsoup` clean code with functions defined with `def`, you may easily run into `Serialization` problems with Spark. You can work around these \"bugs\" by inlining more of your processing. This [blog post](https://www.lihaoyi.com/post/ScrapingWebsitesusingScalaandJsoup.html) has some nice examples of using `Jsoup` in plain Scala, but not all examples carry over trivially - feel free to use it for inspiration!",
+      "user": "anonymous",
+      "dateUpdated": "2025-05-15T14:19:27+0000",
+      "progress": 0,
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/markdown",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1747316498589_905944755",
+      "id": "paragraph_1747316498589_905944755",
+      "dateCreated": "2025-05-15T13:41:38+0000",
+      "dateStarted": "2025-05-15T14:19:27+0000",
+      "dateFinished": "2025-05-15T14:19:27+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:205",
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<p>Use <a href=\"https://jsoup.org\"><code>Jsoup</code> (link)</a> to get access to an HTML parser, to obtain the values of specific tags, get rid of tags, <em>etc.</em></p>\n<p>Jsoup is a package just like the Sedona packages we added in the Open Data assignment (A4). If not there, please add the following line again to <code>spark.jars.packages</code> in the Spark interpreter (comma-separated): <code>org.jsoup:jsoup:1.11.3</code></p>\n<p>If you try to move access to using <code>Jsoup</code> clean code with functions defined with <code>def</code>, you may easily run into <code>Serialization</code> problems with Spark. You can work around these &ldquo;bugs&rdquo; by inlining more of your processing. This <a href=\"https://www.lihaoyi.com/post/ScrapingWebsitesusingScalaandJsoup.html\">blog post</a> has some nice examples of using <code>Jsoup</code> in plain Scala, but not all examples carry over trivially - feel free to use it for inspiration!</p>\n\n</div>"
+          }
+        ]
+      }
+    },
+    {
+      "text": "%md\nE.g., consider an impractically simple example to align document titles with the outgoing links from that document. \n\n_PS: The more interesting example of deriving the anchor text that points to a document is a much more challenging big data job... a nice problem to tackle really, but consider it advanced._",
+      "user": "anonymous",
+      "dateUpdated": "2025-05-15T14:19:29+0000",
+      "progress": 0,
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/markdown",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1747316501733_1959853613",
+      "id": "paragraph_1747316501733_1959853613",
+      "dateCreated": "2025-05-15T13:41:41+0000",
+      "dateStarted": "2025-05-15T14:19:29+0000",
+      "dateFinished": "2025-05-15T14:19:29+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:206",
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<p>E.g., consider an impractically simple example to align document titles with the outgoing links from that document.</p>\n<p><em>PS: The more interesting example of deriving the anchor text that points to a document is a much more challenging big data job&hellip; a nice problem to tackle really, but consider it advanced.</em></p>\n\n</div>"
+          }
+        ]
+      }
+    },
+    {
+      "text": "import org.jsoup.Jsoup\nimport collection.JavaConverters._\n\nval extractInfo = udf( (html: String) => {\n    val d = Jsoup.parse(html)\n    val links = d.select(\"a\").asScala\n\n    (d.title(), links.map(_.attr(\"href\")))\n} )\n\nhtmlRecords\n    .select($\"warcTargetUri\", extractInfo($\"httpBody\").as(\"extracted\"))\n    .select($\"warcTargetUri\", $\"extracted._1\".as(\"title\"), $\"extracted._2\".as(\"links\"))\n    .show(20, 60)",
+      "user": "anonymous",
+      "dateUpdated": "2025-05-15T13:45:17+0000",
+      "progress": 100,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {
+        "jobUrl": {
+          "propertyName": "jobUrl",
+          "label": "SPARK JOB",
+          "tooltip": "View in Spark web UI",
+          "group": "spark",
+          "values": [
+            {
+              "jobUrl": "http://82da41719431:4040/jobs/job?id=13",
+              "$$hashKey": "object:2069"
+            }
+          ],
+          "interpreterSettingId": "spark"
+        }
+      },
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1747316567106_106748285",
+      "id": "paragraph_1747316567106_106748285",
+      "dateCreated": "2025-05-15T13:42:47+0000",
+      "dateStarted": "2025-05-15T13:45:17+0000",
+      "dateFinished": "2025-05-15T13:45:18+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:207"
+    },
+    {
+      "text": "%md\n### Final words\n\nFinally, it is time to develop your own project.\n\nDo not worry about a _\\\"required\\\"_ level of success; it does not have to be a publishable study!\nIt is perfectly fine if you only realize no more than rather simple standalone program that executes on the cluster but does not run on the complete crawl, or it does run on a lot of data but uses only header information. \n\n**Even simple tasks are challenging when carried out on large data!**\n\nDo not be too ambitious, and make progress step by step.\n\nThe examples presented in this notebook are meant to be helpful, but they are by no means complete and have not been tested thoroughly on actual data.\nYou may encounter weird problems, complex enough such that there may not even exist an immediate answer on StackExchange.\n\nI hope the course provided enough background on Spark to spot what the cause of the problem might be; however, if you spend more than say two to three hours on analyzing and debugging a challenge, I recommend to give up and modify your objective - consider a different (simpler) project and only scale up later on (provided there is still time left).\n\n_If you cannot solve a problem, definitely do call out by dropping a note in the Matrix room - maybe one of us knows the answer already!_",
+      "user": "anonymous",
+      "dateUpdated": "2025-05-15T14:19:33+0000",
+      "progress": 0,
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/markdown",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1747306833088_1247785045",
+      "id": "paragraph_1620782893102_1897730098",
+      "dateCreated": "2025-05-15T11:00:33+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:208",
+      "dateFinished": "2025-05-15T14:19:33+0000",
+      "dateStarted": "2025-05-15T14:19:33+0000",
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<h3>Final words</h3>\n<p>Finally, it is time to develop your own project.</p>\n<p>Do not worry about a <em>&quot;required&quot;</em> level of success; it does not have to be a publishable study!<br />\nIt is perfectly fine if you only realize no more than rather simple standalone program that executes on the cluster but does not run on the complete crawl, or it does run on a lot of data but uses only header information.</p>\n<p><strong>Even simple tasks are challenging when carried out on large data!</strong></p>\n<p>Do not be too ambitious, and make progress step by step.</p>\n<p>The examples presented in this notebook are meant to be helpful, but they are by no means complete and have not been tested thoroughly on actual data.<br />\nYou may encounter weird problems, complex enough such that there may not even exist an immediate answer on StackExchange.</p>\n<p>I hope the course provided enough background on Spark to spot what the cause of the problem might be; however, if you spend more than say two to three hours on analyzing and debugging a challenge, I recommend to give up and modify your objective - consider a different (simpler) project and only scale up later on (provided there is still time left).</p>\n<p><em>If you cannot solve a problem, definitely do call out by dropping a note in the Matrix room - maybe one of us knows the answer already!</em></p>\n\n</div>"
+          }
+        ]
+      }
+    },
+    {
+      "text": "// And now it's up to you!\n\n",
+      "user": "anonymous",
+      "dateUpdated": "2025-05-15T11:00:33+0000",
+      "progress": 0,
+      "config": {
         "editorSetting": {
           "language": "scala",
           "editOnDblClick": false,
@@ -851,118 +1264,17 @@
       "apps": [],
       "runtimeInfos": {},
       "progressUpdateIntervalMs": 500,
-      "jobName": "paragraph_1591659459517_-427048356",
-      "id": "paragraph_1588610124502_1888195044",
-      "dateCreated": "2020-06-08T23:37:39+0000",
-      "dateStarted": "2020-06-09T00:16:50+0000",
-      "dateFinished": "2020-06-09T00:16:51+0000",
-      "status": "FINISHED",
-      "$$hashKey": "object:5119"
-    },
-    {
-      "text": "warcc.map{ tt => (tt._1, StringUtils.substring(tt._2, 0, 128)) }.take(15).foreach{ println }",
-      "user": "anonymous",
-      "dateUpdated": "2020-06-09T00:17:34+0000",
-      "config": {
-        "colWidth": 12,
-        "fontSize": 9,
-        "enabled": true,
-        "results": {
-          "0": {
-            "graph": {
-              "mode": "table",
-              "height": 467.6,
-              "optionOpen": false
-            }
-          }
-        },
-        "editorSetting": {
-          "language": "scala",
-          "editOnDblClick": false,
-          "completionKey": "TAB",
-          "completionSupport": true
-        },
-        "editorMode": "ace/mode/scala",
-        "editorHide": false,
-        "tableHide": false
-      },
-      "settings": {
-        "params": {},
-        "forms": {}
-      },
-      "apps": [],
-      "runtimeInfos": {
-        "jobUrl": {
-          "propertyName": "jobUrl",
-          "label": "SPARK JOB",
-          "tooltip": "View in Spark web UI",
-          "group": "spark",
-          "values": [
-            {
-              "jobUrl": "http://8065923c1610:4040/jobs/job?id=28",
-              "$$hashKey": "object:6605"
-            }
-          ],
-          "interpreterSettingId": "spark"
-        }
-      },
-      "progressUpdateIntervalMs": 500,
-      "jobName": "paragraph_1591660965541_-1020678738",
-      "id": "paragraph_1591660965541_-1020678738",
-      "dateCreated": "2020-06-09T00:02:45+0000",
-      "dateStarted": "2020-06-09T00:16:56+0000",
-      "dateFinished": "2020-06-09T00:16:56+0000",
-      "status": "FINISHED",
-      "$$hashKey": "object:5120"
-    },
-    {
-      "text": "%md\n### Final words\n\nFinally, it is time to develop your own project.\n\nDo not worry about a _\\\"required\\\"_ level of success; it does not have to be a publishable study!\nIt is perfectly fine if you only realize no more than rather simple standalone program that executes on the cluster\nbut does not run on the complete crawl, or uses only header information. \n\n**Even simple tasks are challenging when carried out on large data!**\n\nDo not be too ambitious, and make progress step by step.\n\nThe examples presented in this notebook are meant to be helpful, but they are by no means complete and have not been tested thoroughly on actual data.\nYou may encounter weird problems, complex enough such that there may not even exist an immediate answer on StackExchange.\n\nI hope the course provided enough background on Spark to spot what the cause of the problem might be; however, if you spend more than say two to three hours on analyzing and debugging a challenge, I recommend to give up and modify your objective - consider a different (simpler) project and only scale up later on (provided there is still time left).\n\n_If you cannot solve a problem, definitely do call out by dropping a note in the Matrix room, or, better, creating an issue on the Forum - maybe one of us knows the answer already!_",
-      "user": "anonymous",
-      "dateUpdated": "2020-06-09T00:19:35+0000",
-      "config": {
-        "editorSetting": {
-          "language": "text",
-          "editOnDblClick": false,
-          "completionKey": "TAB",
-          "completionSupport": true
-        },
-        "colWidth": 12,
-        "editorMode": "ace/mode/text",
-        "fontSize": 9,
-        "editorHide": true,
-        "results": {},
-        "enabled": true,
-        "tableHide": false
-      },
-      "settings": {
-        "params": {},
-        "forms": {}
-      },
-      "apps": [],
-      "runtimeInfos": {},
-      "progressUpdateIntervalMs": 500,
-      "jobName": "paragraph_1591659459517_257139245",
-      "id": "paragraph_1588610970374_875147601",
-      "dateCreated": "2020-06-08T23:37:39+0000",
-      "dateStarted": "2020-06-09T00:19:35+0000",
-      "dateFinished": "2020-06-09T00:19:35+0000",
-      "status": "FINISHED",
-      "$$hashKey": "object:5121",
-      "results": {
-        "code": "SUCCESS",
-        "msg": [
-          {
-            "type": "HTML",
-            "data": "<div class=\"markdown-body\">\n<h3>Final words</h3>\n<p>Finally, it is time to develop your own project.</p>\n<p>Do not worry about a <em>&quot;required&quot;</em> level of success; it does not have to be a publishable study!<br />\nIt is perfectly fine if you only realize no more than rather simple standalone program that executes on the cluster<br />\nbut does not run on the complete crawl, or uses only header information.</p>\n<p><strong>Even simple tasks are challenging when carried out on large data!</strong></p>\n<p>Do not be too ambitious, and make progress step by step.</p>\n<p>The examples presented in this notebook are meant to be helpful, but they are by no means complete and have not been tested thoroughly on actual data.<br />\nYou may encounter weird problems, complex enough such that there may not even exist an immediate answer on StackExchange.</p>\n<p>I hope the course provided enough background on Spark to spot what the cause of the problem might be; however, if you spend more than say two to three hours on analyzing and debugging a challenge, I recommend to give up and modify your objective - consider a different (simpler) project and only scale up later on (provided there is still time left).</p>\n<p><em>If you cannot solve a problem, definitely do call out by dropping a note in the Matrix room, or, better, creating an issue on the Forum - maybe one of us knows the answer already!</em></p>\n\n</div>"
-          }
-        ]
-      }
+      "jobName": "paragraph_1747306833088_711967144",
+      "id": "paragraph_1620780049816_146589865",
+      "dateCreated": "2025-05-15T11:00:33+0000",
+      "status": "READY",
+      "$$hashKey": "object:209"
     }
   ],
   "name": "WARC for Spark",
-  "id": "2FBT1XU37",
+  "id": "2KX31ZBVU",
   "defaultInterpreterGroup": "spark",
-  "version": "0.9.0-preview1",
+  "version": "0.9.0",
   "noteParams": {},
   "noteForms": {},
   "angularObjects": {},
@@ -971,6 +1283,8 @@
     "looknfeel": "default",
     "personalizedMode": "false"
   },
-  "info": {},
+  "info": {
+    "isRunning": false
+  },
   "path": "/WARC for Spark"
 }
