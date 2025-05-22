@@ -37,15 +37,6 @@ RUN --mount=type=secret,id=rubigdatapass PASS=$(cat /run/secrets/rubigdatapass) 
  && usermod -aG wheel hadoop \
  && echo "%hadoop ALL = NOPASSWD: /opt/ssh/sbin/sshd" > /etc/sudoers.d/hadoop
  
-## Tini
-#
-#COPY --from=docker.io/rubigdata/tini:buildx-latest /tmp/tini.rpm /tmp
-#
-#RUN set -eux \
-# && rpm -i /tmp/tini.rpm \
-# && rm /tmp/tini.rpm \
-# && tini --version
-
 USER hadoop:hadoop
 
 ENV SPARK_VER="3.5.5"
@@ -96,5 +87,4 @@ EXPOSE 8080
 EXPOSE 9001
 
 WORKDIR /
-#ENTRYPOINT [ "/usr/bin/tini", "--" ]
 ENTRYPOINT ["/bin/bash", "-c", ". /opt/hadoop/.bashrc ; /opt/zeppelin/bin/zeppelin.sh"]

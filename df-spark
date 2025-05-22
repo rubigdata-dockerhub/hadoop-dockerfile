@@ -75,7 +75,5 @@ EXPOSE 8080
 EXPOSE 9001
 
 WORKDIR /
-# No longer use tini
-# ENTRYPOINT [ "/usr/bin/tini", "--" ]
 ENTRYPOINT ["/bin/bash", "-c", ". /opt/hadoop/.bashrc ; /opt/zeppelin/bin/zeppelin.sh"]
 
