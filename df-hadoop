@@ -25,14 +25,6 @@ RUN echo "Building Hadoop" \
      echo export ${ev}_USER=hadoop ; \
    done >> etc/hadoop/hadoop-env.sh'
 
-## Patch Hadoop for bash 4.4
-#
-# COPY HADOOP-16167.004.patch /tmp
-# RUN echo "Bash patch HADOOP-16167.004" \
-#  && $microdnf install patch \
-#  && cd /hadoop-${HADOOP_VER}/libexec \
-#  && patch -i /tmp/HADOOP-16167.004.patch
-
 #########################################################
 #########################################################
 
@@ -55,15 +47,6 @@ RUN --mount=type=secret,id=rubigdatapass PASS=$(cat /run/secrets/rubigdatapass) 
  && usermod -aG wheel hadoop \
  && echo "%hadoop ALL = NOPASSWD: /opt/ssh/sbin/sshd" > /etc/sudoers.d/hadoop
  
-## Tini
-#
-#COPY --from=docker.io/rubigdata/tini:buildx-latest /tmp/tini.rpm /tmp
-
-#RUN set -eux \
-# && rpm -i /tmp/tini.rpm \
-# && rm /tmp/tini.rpm \
-# && tini --version
-
 ## Hadoop
 
 USER hadoop:hadoop
@@ -117,7 +100,3 @@ EXPOSE 9870
 EXPOSE 8088
 
 WORKDIR /opt/hadoop
-
-# Use default entrypoint instead of older:
-#ENTRYPOINT [ "/usr/bin/tini", "--" ]
-#CMD ["/bin/bash"]
