@@ -1,5 +1,18 @@
 # Building the Dockerfile
 
+## Preliminaries
+
+On an ARM64 machine, you may first have to issue:
+
+    sudo dnf install qemu-user-static
+
+Checkout the submodule for `redbad-setup`:
+
+    git submodule init
+    git submodule update
+
+_Note: not sure if the init is necessary._
+
 ## Multi-stage build
 
 We use a [multi-stage build][msb] setup to simplify debugging and

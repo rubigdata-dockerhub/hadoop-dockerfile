@@ -69,4 +69,3 @@ ENV PATH=$PATH:$JAVA_HOME/bin
 #
 RUN $microdnf install -y \
       python311
-
