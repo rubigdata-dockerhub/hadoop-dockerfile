@@ -16,6 +16,7 @@ libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-core" % sparkV % "provided",
   "org.apache.spark" %% "spark-sql"  % sparkV % "provided",
   "org.apache.hadoop" %  "hadoop-client" % hadoopV % "provided",
+  "com.github.rubigdata" %  "warc-for-spark"   % "0.3.0",
   "org.jsoup"         % "jsoup"          % "1.11.3",
   "org.netpreserve"   % "jwarc"          % "0.30.0"
 )
